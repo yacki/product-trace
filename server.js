@@ -20,41 +20,27 @@ function initDatabase() {
     
     // 如果数据库文件不存在，则初始化所有表结构
     if (!fs.existsSync('products.db')) {
-        // 直接在代码中定义SQL语句，避免依赖外部文件
-        const sqlStatements = `
-            -- 创建产品信息表
-            CREATE TABLE IF NOT EXISTS products (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                sku VARCHAR(50) UNIQUE,
-                origin VARCHAR(100),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
+        // 分步执行SQL语句，避免SQL语法解析问题
+        const createProductsTable = "CREATE TABLE IF NOT EXISTS products ("
+            + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+            + "sku VARCHAR(50) UNIQUE, "
+            + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
             
-            -- 创建溯源信息表（存储二维码信息，并直接关联产品）
-            CREATE TABLE IF NOT EXISTS traceability_codes (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                code VARCHAR(50) UNIQUE,
-                dark_code VARCHAR(50) UNIQUE,
-                product_id INTEGER, -- 直接关联产品ID
-                FOREIGN KEY (product_id) REFERENCES products(id),
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
+        const createTraceabilityCodesTable = "CREATE TABLE IF NOT EXISTS traceability_codes ("
+            + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
+            + "code VARCHAR(50) UNIQUE, "
+            + "dark_code VARCHAR(50) UNIQUE, "
+            + "product_id INTEGER, "
+            + "distributor VARCHAR(100), " // 分销商字段
+            + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, "
+            + "FOREIGN KEY(product_id) REFERENCES products(id))";
             
-            -- 创建视图，方便查询产品信息
-            CREATE VIEW IF NOT EXISTS product_view AS 
-            SELECT 
-                tc.code,
-                tc.dark_code,
-                p.sku,
-                p.origin,
-                tc.created_at
-            FROM 
-                traceability_codes tc
-            LEFT JOIN 
-                products p ON tc.product_id = p.id;
-        `;
-        
-        exec(`sqlite3 products.db "${sqlStatements.replace(/"/g, '""')}"`, (error, stdout, stderr) => {
+        const createProductView = "CREATE VIEW IF NOT EXISTS product_view AS "
+            + "SELECT tc.code, tc.dark_code, p.sku, tc.distributor, tc.created_at "
+            + "FROM traceability_codes tc LEFT JOIN products p ON tc.product_id = p.id";
+            
+        // 连续执行SQL语句
+        exec(`sqlite3 products.db "${createProductsTable.replace(/"/g, '""')}" && sqlite3 products.db "${createTraceabilityCodesTable.replace(/"/g, '""')}" && sqlite3 products.db "${createProductView.replace(/"/g, '""')}"`, (error, stdout, stderr) => {
             if (error) {
                 console.error(`数据库初始化错误: ${error.message}`);
                 return;
@@ -70,6 +56,9 @@ function initDatabase() {
 
 // 初始化数据库
 initDatabase();
+
+// 导出initDatabase函数以便测试
+exports.initDatabase = initDatabase;
 
 // 中间件
 app.use(express.static('public'));
@@ -498,6 +487,8 @@ app.post('/api/batch-import-products', upload.single('csvFile'), (req, res) => {
 });
 
 // 启动服务器
-app.listen(PORT, () => {
-    console.log(`服务器运行在 http://localhost:${PORT}`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`服务器运行在 http://localhost:${PORT}`);
+    });
+}
