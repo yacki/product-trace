@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>保健品防伪查询</title>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #165DFF;
+            --primary-hover: #0E42D2;
+            --secondary-color: #6c757d;
+            --secondary-hover: #5a6268;
+            --background-color: #f8fafc;
+            --card-background: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: var(--background-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(22, 93, 255, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 80% 80%, rgba(22, 93, 255, 0.05) 0%, transparent 20%);
+        }
+        
+        .container {
+            background-color: var(--card-background);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        h1 {
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+            font-weight: 700;
+            position: relative;
+        }
+        
+        h1::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary-color), rgba(22, 93, 255, 0.5));
+            border-radius: 2px;
+            margin: 10px auto 0;
+        }
+        
+        .form-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background-color: var(--card-background);
+            color: var(--text-primary);
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(22, 93, 255, 0.1);
+        }
+        
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(22, 93, 255, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .message {
+            margin-top: 20px;
+            padding: 16px 20px;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .success {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        
+        .info {
+            background-color: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            background-color: var(--card-background);
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+        }
+        
+        .result:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .result h3 {
+            margin-top: 0;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .result h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background-color: var(--primary-color);
+            border-radius: 2px;
+        }
+        
+        .result p {
+            margin: 15px 0;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 1.05rem;
+        }
+        
+        .result p strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .instructions {
+            background-color: #fef3c7;
+            color: #92400e;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #fde68a;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        
+        .instructions strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        .nav {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+        
+        .nav a {
+            margin: 0 20px;
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 1.05rem;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 5px 0;
+        }
+        
+        .nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+        
+        .nav a:hover {
+            color: var(--primary-hover);
+        }
+        
+        .nav a:hover::after {
+            width: 100%;
+        }
+        
+        .query-form {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+        
+        .query-form input {
+            flex: 1;
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .container {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .message {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .result {
+            animation: fadeIn 0.4s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>保健品防伪查询</h1>
+        
+        <div class="nav">
+            <a href="index.html">产品信息录入</a>
+            <a href="import.html">二维码信息导入</a>
+            <a href="query.html">防伪查询</a>
+        </div>
+        
+        <div class="instructions">
+            <p><strong>使用说明：</strong>请刮开商品包装上的二维码涂层，获取暗码后在下方输入查询。</p>
+        </div>
+        
+        <div class="form-group">
+            <label for="dark_code">输入暗码</label>
+            <div class="query-form">
+                <input type="text" id="dark_code" placeholder="请输入刮开后获得的暗码" required>
+                <button type="button" class="btn" id="queryBtn">查询</button>
+            </div>
+        </div>
+        
+        <div id="message" class="message hidden"></div>
+        
+        <div id="result" class="result hidden">
+            <h3>查询结果</h3>
+            <p><strong>产品SKU：</strong><span id="result-sku"></span></p>
+            <p><strong>产品产地：</strong><span id="result-origin"></span></p>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // 查询按钮点击处理
+            $('#queryBtn').click(function() {
+                const dark_code = $('#dark_code').val().trim();
+                
+                if (!dark_code) {
+                    showMessage('请输入暗码后查询', 'error');
+                    return;
+                }
+                
+                $.ajax({
+                    url: `/api/products/${dark_code}`,
+                    type: 'GET',
+                    success: function(response) {
+                        $('#result').addClass('hidden');
+                        
+                        if (response.success) {
+                            showMessage('查询成功', 'success');
+                            // 显示查询结果
+                            $('#result-sku').text(response.product.sku);
+                            $('#result-origin').text(response.product.origin);
+                            $('#result').removeClass('hidden');
+                        } else {
+                            showMessage(response.message, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        // 提供更具体的错误信息
+                        let errorMessage = '请求失败';
+                        if (xhr.status) {
+                            errorMessage += ` (HTTP状态码: ${xhr.status})`;
+                        }
+                        if (status) {
+                            errorMessage += ` - ${status}`;
+                        }
+                        if (error) {
+                            errorMessage += ` - ${error}`;
+                        }
+                        showMessage(errorMessage, 'error');
+                    }
+                });
+            });
+            
+            // 按Enter键查询
+            $('#dark_code').keypress(function(e) {
+                if (e.which === 13) {
+                    $('#queryBtn').click();
+                }
+            });
+            
+            // 显示消息
+            function showMessage(message, type) {
+                const messageElement = $('#message');
+                messageElement.text(message);
+                messageElement.removeClass('hidden success error info');
+                messageElement.addClass(type);
+            }
+            
+            // 隐藏消息
+            function hideMessage() {
+                $('#message').addClass('hidden');
+            }
+        });
+    </script>
+</body>
+</html>

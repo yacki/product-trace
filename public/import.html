@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>二维码信息导入</title>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <style>
+        :root {
+            --primary-color: #165DFF;
+            --primary-hover: #0E42D2;
+            --secondary-color: #6c757d;
+            --secondary-hover: #5a6268;
+            --background-color: #f8fafc;
+            --card-background: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --success-color: #10b981;
+            --error-color: #ef4444;
+            --warning-color: #f59e0b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 15px;
+            background-color: var(--background-color);
+            background-image: 
+                radial-gradient(circle at 10% 20%, rgba(22, 93, 255, 0.05) 0%, transparent 20%),
+                radial-gradient(circle at 80% 80%, rgba(22, 93, 255, 0.05) 0%, transparent 20%);
+        }
+        
+        .container {
+            background-color: var(--card-background);
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .container:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+        }
+        
+        h1 {
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+            font-weight: 600;
+            position: relative;
+        }
+        
+        h1::after {
+            content: '';
+            display: block;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, var(--primary-color), rgba(22, 93, 255, 0.5));
+            border-radius: 2px;
+            margin: 8px auto 0;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 15px;
+            transition: all 0.3s ease;
+            background-color: var(--card-background);
+            color: var(--text-primary);
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(22, 93, 255, 0.1);
+        }
+        
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 10px 18px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+        
+        .btn:hover {
+            background-color: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(22, 93, 255, 0.3);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-secondary:hover {
+            background-color: var(--secondary-hover);
+            box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+        }
+        
+        .message {
+            margin-top: 15px;
+            padding: 12px 16px;
+            border-radius: 6px;
+            text-align: center;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .success {
+            background-color: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+        
+        .error {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+        
+        .buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .instructions {
+            background-color: #fef3c7;
+            color: #92400e;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #fde68a;
+            margin-bottom: 20px;
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+        
+        .instructions strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
+        .nav {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .nav a {
+            margin: 0 15px;
+            text-decoration: none;
+            color: var(--primary-color);
+            font-weight: 600;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            position: relative;
+            padding: 4px 0;
+        }
+        
+        .nav a::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background-color: var(--primary-color);
+            transition: width 0.3s ease;
+        }
+        
+        .nav a:hover {
+            color: var(--primary-hover);
+        }
+        
+        .nav a:hover::after {
+            width: 100%;
+        }
+        
+        .import-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .import-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+        
+        .import-option {
+            cursor: pointer;
+            padding: 10px 16px;
+            border-radius: 6px;
+            background-color: var(--card-background);
+            border: 2px solid var(--border-color);
+            font-weight: 500;
+            color: var(--text-secondary);
+            transition: all 0.3s ease;
+        }
+        
+        .import-option:hover {
+            border-color: var(--primary-color);
+            color: var(--primary-color);
+        }
+        
+        .import-option.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+            box-shadow: 0 4px 12px rgba(22, 93, 255, 0.3);
+        }
+        
+        /* 动画效果 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .container {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .message {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .import-option {            transition: all 0.3s ease;        }        
+        /* 列表样式 */
+        .list-section {
+            margin-top: 20px;
+        }
+        
+        .create-btn-container {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: flex-start;
+        }
+        
+        .table-container {
+            overflow-x: auto;
+            margin-top: 15px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 9px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.95rem;
+        }
+        
+        th {
+            background-color: #f1f5f9;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        tr:hover {
+            background-color: #f8fafc;
+        }
+        
+        .table-empty {
+            text-align: center;
+            color: var(--text-secondary);
+            padding: 30px;
+            font-style: italic;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 15px;
+            gap: 4px;
+        }
+        
+        .pagination button {
+            padding: 6px 10px;
+            border: 1px solid var(--border-color);
+            background-color: white;
+            color: var(--text-primary);
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        
+        .pagination button:hover {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .pagination button.active {
+            background-color: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+    </style></head>
+<body>
+    <div class="container">
+        <h1>二维码信息导入</h1>
+        
+        <div class="nav">
+            <a href="index.html">产品信息录入</a>
+            <a href="import.html">二维码信息导入</a>
+            <a href="query.html">防伪查询</a>
+        </div>
+        
+        <div class="instructions">
+            <p><strong>使用说明：</strong>请在此页面预先导入从淘宝购买的二维码信息（明码和暗码的对应关系）。导入后，再到产品信息录入页面绑定SKU和溯源信息。</p>
+        </div>
+        
+        <div class="import-options">
+            <div class="import-option active" id="singleImport">单个导入</div>
+            <div class="import-option" id="batchImport">批量导入</div>
+        </div>
+        
+        <!-- 单个导入表单 -->
+        <div id="singleImportForm">
+        <form id="importForm">
+            <div class="form-group">
+                <label for="code">明码 *</label>
+                <input type="text" id="code" name="code" placeholder="请输入二维码上的明码" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="dark_code">暗码 *</label>
+                <input type="text" id="dark_code" name="dark_code" placeholder="请输入二维码上的暗码" required>
+            </div>
+            
+            <div class="buttons">
+                <button type="submit" class="btn">导入二维码信息</button>
+                <button type="button" class="btn btn-secondary" id="resetBtn">重置</button>
+            </div>
+        </form>
+        </div>
+        
+        <!-- 批量导入表单 -->
+        <div id="batchImportForm" style="display: none;">
+            <div class="form-group">
+                <label for="batchCodeFile">上传CSV文件</label>
+                <p style="color: var(--text-secondary); margin-bottom: 15px;">请上传包含明码和暗码信息的CSV文件。CSV文件应包含code和dark_code两个字段。</p>
+                <input type="file" id="batchCodeFile" accept=".csv" style="margin-bottom: 15px;">
+                <button type="button" class="btn" id="batchImportCodeBtn">批量导入</button>
+            </div>
+        </div>
+        
+        <div id="message" class="message hidden"></div>
+        
+        <!-- 二维码列表区域 -->
+        <div class="list-section">
+            <div class="create-btn-container">
+                <button type="button" class="btn" id="showCreateFormBtn">新建二维码信息</button>
+            </div>
+            
+            <div class="table-container">
+                <table id="codesTable">
+                    <thead>
+                        <tr>
+                            <th>明码</th>
+                            <th>暗码</th>
+                            <th>创建时间</th>
+                        </tr>
+                    </thead>
+                    <tbody id="codesTableBody">
+                        <tr class="table-empty">
+                            <td colspan="3">暂无二维码信息</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="pagination" id="pagination">
+                <!-- 分页按钮将由JavaScript动态生成 -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            // 页面加载时隐藏导入表单，显示列表
+            $('#singleImportForm').hide();
+            $('#batchImportForm').hide();
+            
+            // 加载二维码列表
+            loadCodesList();
+            
+            // 显示创建表单按钮点击事件
+            $('#showCreateFormBtn').click(function() {
+                $('#singleImportForm').show();
+                $('#batchImportForm').hide();
+                // 隐藏批量导入选项
+                $('.import-options').hide();
+                // 重置表单
+                $('#importForm')[0].reset();
+            });
+            // 导入选项切换
+            $('.import-option').click(function() {
+                $('.import-option').removeClass('active');
+                $(this).addClass('active');
+                
+                if ($(this).attr('id') === 'batchImport') {
+                    $('#singleImportForm').hide();
+                    $('#batchImportForm').show();
+                } else {
+                    $('#singleImportForm').show();
+                    $('#batchImportForm').hide();
+                }
+                
+                // 隐藏消息
+                hideMessage();
+            });
+            
+            // 批量导入二维码信息
+            $('#batchImportCodeBtn').click(function() {
+                const fileInput = $('#batchCodeFile');
+                const file = fileInput[0].files[0];
+                
+                if (!file) {
+                    showMessage('请选择CSV文件', 'error');
+                    return;
+                }
+                
+                const formData = new FormData();
+                formData.append('csvFile', file);
+                
+                showMessage('正在导入，请稍候...', 'info');
+                
+                $.ajax({
+                    url: '/api/batch-import-codes',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            showMessage(response.message, 'success');
+                        } else {
+                            let errorMsg = response.message;
+                            if (response.errors && response.errors.length > 0) {
+                                errorMsg += '\n' + response.errors.join('\n');
+                            }
+                            showMessage(errorMsg, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        let errorMessage = '批量导入失败';
+                        if (xhr.status) {
+                            errorMessage += ` (HTTP状态码: ${xhr.status})`;
+                        }
+                        if (status) {
+                            errorMessage += ` - ${status}`;
+                        }
+                        if (error) {
+                            errorMessage += ` - ${error}`;
+                        }
+                        showMessage(errorMessage, 'error');
+                    },
+                    complete: function() {
+                        // 清空文件输入
+                        fileInput.val('');
+                    }
+                });
+            });
+            
+            // 表单提交处理
+            $('#importForm').submit(function(e) {
+                e.preventDefault();
+                
+                const formData = {
+                    code: $('#code').val(),
+                    dark_code: $('#dark_code').val()
+                };
+                
+                $.ajax({
+                    url: '/api/import-codes',
+                    type: 'POST',
+                    data: JSON.stringify(formData),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        if (response.success) {
+                            showMessage(response.message, 'success');
+                            // 重置表单
+                            $('#importForm')[0].reset();
+                        } else {
+                            showMessage(response.message, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        // 提供更具体的错误信息
+                        let errorMessage = '请求失败';
+                        if (xhr.status) {
+                            errorMessage += ` (HTTP状态码: ${xhr.status})`;
+                        }
+                        if (status) {
+                            errorMessage += ` - ${status}`;
+                        }
+                        if (error) {
+                            errorMessage += ` - ${error}`;
+                        }
+                        showMessage(errorMessage, 'error');
+                    }
+                });
+            });
+            
+            // 重置按钮处理
+            $('#resetBtn').click(function() {
+                $('#importForm')[0].reset();
+                hideMessage();
+                // 隐藏表单，返回列表
+                $('#singleImportForm').hide();
+                $('#batchImportForm').hide();
+                $('.import-options').hide();
+            });
+            
+            // 加载二维码列表
+            function loadCodesList() {
+                $.ajax({
+                    url: '/api/get-codes',
+                    type: 'GET',
+                    success: function(response) {
+                        if (response.success && response.codes && response.codes.length > 0) {
+                            renderCodesTable(response.codes);
+                        } else {
+                            $('#codesTableBody').html('<tr class="table-empty"><td colspan="3">暂无二维码信息</td></tr>');
+                        }
+                    },
+                    error: function() {
+                        showMessage('加载二维码列表失败', 'error');
+                    }
+                });
+            }
+            
+            // 渲染二维码表格
+            function renderCodesTable(codes) {
+                let html = '';
+                
+                codes.forEach(code => {
+                    html += `
+                        <tr>
+                            <td>${code.code}</td>
+                            <td>${code.dark_code}</td>
+                            <td>${code.created_at ? new Date(code.created_at).toLocaleString() : '-'}</td>
+                        </tr>
+                    `;
+                });
+                
+                $('#codesTableBody').html(html);
+                
+                // 为了简单起见，这里不实现分页功能
+            }
+            
+            // 导入成功后刷新列表
+            const originalShowMessage = showMessage;
+            showMessage = function(message, type) {
+                originalShowMessage(message, type);
+                
+                // 如果是成功消息，刷新列表
+                if (type === 'success') {
+                    setTimeout(loadCodesList, 1000);
+                    // 隐藏表单
+                    $('#singleImportForm').hide();
+                    $('#batchImportForm').hide();
+                }
+            };
+            
+            // 显示消息
+            function showMessage(message, type) {
+                const messageElement = $('#message');
+                messageElement.text(message);
+                messageElement.removeClass('hidden success error');
+                messageElement.addClass(type);
+            }
+            
+            // 隐藏消息
+            function hideMessage() {
+                $('#message').addClass('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
