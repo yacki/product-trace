@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>二维码信息导入</title>
+    <title>溯源码信息导入</title>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <style>
         :root {
@@ -655,7 +655,7 @@
     <div class="container">
         <div class="nav">
             <a href="index.html">产品维护</a>
-            <a href="import.html">二维码管理</a>
+            <a href="import.html">溯源码管理</a>
             <a href="query.html">防伪查询</a>
         </div>
         
@@ -670,16 +670,16 @@
         <form id="importForm">
             <div class="form-group">
                 <label for="code">明码 *</label>
-                <input type="text" id="code" name="code" placeholder="请输入二维码上的明码" required>
+                <input type="text" id="code" name="code" placeholder="请输入溯源码上的明码" required>
             </div>
             
             <div class="form-group">
                 <label for="dark_code">暗码 *</label>
-                <input type="text" id="dark_code" name="dark_code" placeholder="请输入二维码上的暗码" required>
+                <input type="text" id="dark_code" name="dark_code" placeholder="请输入溯源码上的暗码" required>
             </div>
             
             <div class="buttons">
-                <button type="submit" class="btn">保存二维码</button>
+                <button type="submit" class="btn">保存溯源码</button>
                 <button type="button" class="btn btn-secondary" id="resetBtn">重置</button>
             </div>
         </form>
@@ -723,7 +723,7 @@
         
         <div id="message" class="message hidden"></div>
         
-        <!-- 二维码列表区域 -->
+        <!-- 溯源码列表区域 -->
         <div class="list-section">
             <div class="table-container">
                 <table id="codesTable">
@@ -739,7 +739,7 @@
                     </thead>
                     <tbody id="codesTableBody">
                         <tr class="table-empty">
-                            <td colspan="6">暂无二维码信息</td>
+                            <td colspan="6">暂无溯源码信息</td>
                         </tr>
                     </tbody>
                 </table>
@@ -788,7 +788,7 @@
             $('#productBindForm').hide();
             $('.import-options').show();
             
-            // 加载二维码列表
+            // 加载溯源码列表
             loadCodesList();
             
             // 导入选项切换
@@ -813,12 +813,12 @@
                 hideMessage();
             });
             
-            // 批量导入二维码信息函数
+            // 批量导入溯源码信息函数
             function batchImportCodes(file) {
                 const formData = new FormData();
                 formData.append('csvFile', file);
                 
-                showMessage('正在导入二维码信息，请稍候...', 'info');
+                showMessage('正在导入溯源码信息，请稍候...', 'info');
                 
                 $.ajax({
                     url: '/api/batch-import-codes',
@@ -1068,7 +1068,7 @@
                 $('.import-options').hide();
             });
             
-            // 加载二维码列表
+            // 加载溯源码列表
             function loadCodesList(page = 1) {
                 currentPage = page;
                 $.ajax({
@@ -1087,22 +1087,22 @@
                                 totalRecords = response.total || 0;
                                 renderPagination();
                             } else {
-                                $('#codesTableBody').html('<tr class="table-empty"><td colspan="6">暂无二维码信息</td></tr>');
+                                $('#codesTableBody').html('<tr class="table-empty"><td colspan="6">暂无溯源码信息</td></tr>');
                                 $('#pagination').empty();
                             }
                         } else {
-                            $('#codesTableBody').html('<tr class="table-empty"><td colspan="6">暂无二维码信息</td></tr>');
+                            $('#codesTableBody').html('<tr class="table-empty"><td colspan="6">暂无溯源码信息</td></tr>');
                             $('#pagination').empty();
                         }
                     },
                     error: function() {
-                        showMessage('加载二维码列表失败', 'error');
+                        showMessage('加载溯源码列表失败', 'error');
                         $('#pagination').empty();
                     }
                 });
             }
             
-            // 渲染二维码表格
+            // 渲染溯源码表格
             function renderCodesTable(codes) {
                 let html = '';
                 
@@ -1393,7 +1393,7 @@
                             showMessage(response.message, 'success');
                             // 关闭对话框
                             closeAssociateModal();
-                            // 刷新二维码列表（保持当前页）
+                            // 刷新溯源码列表（保持当前页）
                             loadCodesList(currentPage);
                         } else {
                             showMessage(response.message, 'error');

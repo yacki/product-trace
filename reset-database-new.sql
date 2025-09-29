@@ -12,7 +12,7 @@ CREATE TABLE products (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 创建溯源信息表（存储二维码信息，并直接关联产品）
+-- 创建溯源信息表（存储溯源码信息，并直接关联产品）
 CREATE TABLE traceability_codes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     code VARCHAR(50) UNIQUE,

@@ -88,7 +88,7 @@ app.use('/api', (req, res, next) => {
 
 // API路由
 
-// 导入二维码信息（明码和暗码的对应关系）
+// 导入溯源码信息（明码和暗码的对应关系）
 app.post('/api/import-codes', (req, res) => {
     const { code, dark_code } = req.body;
     
@@ -102,17 +102,17 @@ app.post('/api/import-codes', (req, res) => {
     
     exec(`sqlite3 products.db "${sql}"`, (error, stdout, stderr) => {
         if (error) {
-            console.error(`导入二维码信息错误: ${error.message}`);
+            console.error(`导入溯源码信息错误: ${error.message}`);
             if (error.message.includes('UNIQUE constraint failed')) {
                 return res.status(400).json({ success: false, message: '明码或暗码已存在' });
             }
             return res.status(500).json({ success: false, message: '服务器内部错误' });
         }
         if (stderr) {
-            console.error(`导入二维码信息 stderr: ${stderr}`);
+            console.error(`导入溯源码信息 stderr: ${stderr}`);
             return res.status(500).json({ success: false, message: '服务器内部错误' });
         }
-        res.json({ success: true, message: '二维码信息导入成功' });
+        res.json({ success: true, message: '溯源码信息导入成功' });
     });
 });
 
@@ -137,7 +137,7 @@ app.post('/api/products', (req, res) => {
         try {
             const codeResults = JSON.parse(checkStdout);
             if (codeResults.length === 0) {
-                return res.status(404).json({ success: false, message: '未找到对应的明码，请先导入二维码信息' });
+                return res.status(404).json({ success: false, message: '未找到对应的明码，请先导入溯源码信息' });
             }
             
             const codeId = codeResults[0].id;
@@ -428,10 +428,10 @@ app.get('/api/product-library-old', (req, res) => {
     });
 });
 
-// 批量导入二维码信息（CSV文件）
+// 批量导入溯源码信息（CSV文件）
 app.post('/api/batch-import-codes', upload.single('csvFile'), (req, res) => {
     const timestamp = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
-    console.log(`[${timestamp}] 开始批量导入二维码: 文件=${req.file ? req.file.filename : '无'}`);
+    console.log(`[${timestamp}] 开始批量导入溯源码: 文件=${req.file ? req.file.filename : '无'}`);
     
     if (!req.file) {
         console.log(`[${timestamp}] 批量导入失败: 未选择文件`);
@@ -543,7 +543,7 @@ app.post('/api/batch-import-codes', upload.single('csvFile'), (req, res) => {
         });
 });
 
-// 获取所有二维码信息列表
+// 获取所有溯源码信息列表
 // 已在文件末尾重写，返回关联的产品信息
 
 // 获取所有产品信息列表（关联了溯源码的产品）
@@ -786,7 +786,7 @@ app.put('/api/products/:id', (req, res) => {
     });
 });
 
-// 在二维码上关联产品分销商信息
+// 在溯源码上关联产品分销商信息
 app.put('/api/codes/:code/distributor', (req, res) => {
     const { code } = req.params;
     const { distributor } = req.body;
@@ -796,19 +796,19 @@ app.put('/api/codes/:code/distributor', (req, res) => {
         return res.status(400).json({ success: false, message: '请提供分销商信息' });
     }
     
-    // 检查二维码是否存在
+    // 检查溯源码是否存在
     const checkCodeSql = `SELECT id, product_id FROM traceability_codes WHERE code = '${code}'`;
     
     exec(`sqlite3 -json products.db "${checkCodeSql}"`, (checkError, checkStdout) => {
         if (checkError) {
-            console.error(`检查二维码错误: ${checkError.message}`);
+            console.error(`检查溯源码错误: ${checkError.message}`);
             return res.status(500).json({ success: false, message: '服务器内部错误' });
         }
         
         try {
             const codeResults = JSON.parse(checkStdout);
             if (codeResults.length === 0) {
-                return res.status(404).json({ success: false, message: '未找到对应的二维码' });
+                return res.status(404).json({ success: false, message: '未找到对应的溯源码' });
             }
             
             const codeId = codeResults[0].id;
@@ -816,7 +816,7 @@ app.put('/api/codes/:code/distributor', (req, res) => {
             
             // 检查是否已关联产品
             if (!productId) {
-                return res.status(400).json({ success: false, message: '该二维码尚未关联产品，请先录入产品信息' });
+                return res.status(400).json({ success: false, message: '该溯源码尚未关联产品，请先录入产品信息' });
             }
             
             // 更新分销商信息
@@ -836,7 +836,7 @@ app.put('/api/codes/:code/distributor', (req, res) => {
     });
 });
 
-// 在二维码上关联产品信息
+// 在溯源码上关联产品信息
 app.put('/api/codes/:code/product', (req, res) => {
     const { code } = req.params;
     const { product_id, distributor } = req.body;
@@ -846,19 +846,19 @@ app.put('/api/codes/:code/product', (req, res) => {
         return res.status(400).json({ success: false, message: '请选择要关联的产品' });
     }
     
-    // 检查二维码是否存在
+    // 检查溯源码是否存在
     const checkCodeSql = `SELECT id FROM traceability_codes WHERE code = '${code}'`;
     
     exec(`sqlite3 -json products.db "${checkCodeSql}"`, (checkError, checkStdout) => {
         if (checkError) {
-            console.error(`检查二维码错误: ${checkError.message}`);
+            console.error(`检查溯源码错误: ${checkError.message}`);
             return res.status(500).json({ success: false, message: '服务器内部错误' });
         }
         
         try {
             const codeResults = JSON.parse(checkStdout);
             if (codeResults.length === 0) {
-                return res.status(404).json({ success: false, message: '未找到对应的二维码' });
+                return res.status(404).json({ success: false, message: '未找到对应的溯源码' });
             }
             
             const codeId = codeResults[0].id;
@@ -900,7 +900,7 @@ app.put('/api/codes/:code/product', (req, res) => {
     });
 });
 
-// 修改获取二维码列表的API，使其返回关联的产品名称和SKU
+// 修改获取溯源码列表的API，使其返回关联的产品名称和SKU
 app.get('/api/get-codes', (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const pageSize = parseInt(req.query.pageSize) || 100;
@@ -911,7 +911,7 @@ app.get('/api/get-codes', (req, res) => {
     
     exec(`sqlite3 -json products.db "${countSql}"`, (countError, countStdout) => {
         if (countError) {
-            console.error(`查询二维码总数错误: ${countError.message}`);
+            console.error(`查询溯源码总数错误: ${countError.message}`);
             return res.status(500).json({ success: false, message: '服务器内部错误' });
         }
         
@@ -927,11 +927,11 @@ app.get('/api/get-codes', (req, res) => {
             
             exec(`sqlite3 -json products.db "${sql}"`, (error, stdout, stderr) => {
                 if (error) {
-                    console.error(`查询二维码信息错误: ${error.message}`);
+                    console.error(`查询溯源码信息错误: ${error.message}`);
                     return res.status(500).json({ success: false, message: '服务器内部错误' });
                 }
                 if (stderr) {
-                    console.error(`查询二维码信息 stderr: ${stderr}`);
+                    console.error(`查询溯源码信息 stderr: ${stderr}`);
                     return res.status(500).json({ success: false, message: '服务器内部错误' });
                 }
                 

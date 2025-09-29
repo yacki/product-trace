@@ -29,18 +29,18 @@ function resetDatabase() {
     });
 }
 
-// 导入测试用的二维码
+// 导入测试用的溯源码
 function importTestCode() {
     return new Promise((resolve, reject) => {
         const sql = `sqlite3 products.db "INSERT INTO traceability_codes (code, dark_code) VALUES ('TESTCODE123', 'DARKCODE123')"`;
         
         exec(sql, (error, stdout, stderr) => {
             if (error) {
-                reject(`导入二维码错误: ${error.message}`);
+                reject(`导入溯源码错误: ${error.message}`);
                 return;
             }
             if (stderr) {
-                console.error(`导入二维码 stderr: ${stderr}`);
+                console.error(`导入溯源码 stderr: ${stderr}`);
             }
             resolve();
         });
@@ -150,7 +150,7 @@ async function runTest() {
         console.log('数据库重置完成');
         
         await importTestCode();
-        console.log('测试二维码导入完成');
+        console.log('测试溯源码导入完成');
         
         const codeId = await insertInitialProduct();
         console.log('初始产品信息录入完成，溯源码ID:', codeId);

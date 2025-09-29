@@ -26,14 +26,14 @@ const testProduct = {
     distributor: '测试分销商ABC'
 };
 
-// 先导入二维码信息
+// 先导入溯源码信息
 const importCodeSql = `INSERT INTO traceability_codes (code, dark_code) VALUES ('${testProduct.code}', 'dark-${testProduct.code}')`;
 exec(`sqlite3 products.db "${importCodeSql}"`, (error, stdout, stderr) => {
     if (error) {
-        console.error(`导入二维码信息失败: ${error.message}`);
+        console.error(`导入溯源码信息失败: ${error.message}`);
         return;
     }
-    console.log('成功导入二维码信息');
+    console.log('成功导入溯源码信息');
     
     // 录入产品信息（模拟API调用）
     const insertProductSql = `INSERT OR IGNORE INTO products (sku) VALUES ('${testProduct.sku}')`;
