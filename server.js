@@ -24,6 +24,7 @@ function initDatabase() {
         const createProductsTable = "CREATE TABLE IF NOT EXISTS products ("
             + "id INTEGER PRIMARY KEY AUTOINCREMENT, "
             + "sku VARCHAR(50) UNIQUE, "
+            + "name VARCHAR(100), "
             + "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
             
         const createTraceabilityCodesTable = "CREATE TABLE IF NOT EXISTS traceability_codes ("
@@ -97,7 +98,7 @@ app.post('/api/import-codes', (req, res) => {
 
 // 录入产品信息
 app.post('/api/products', (req, res) => {
-    const { code, sku, origin } = req.body;
+    const { code, sku } = req.body;
     
     // 验证输入
     if (!code || (!sku && !req.body.productId)) {
@@ -134,7 +135,7 @@ app.post('/api/products', (req, res) => {
                 });
             } else {
                 // 否则创建新产品并关联
-                const insertProductSql = `INSERT OR IGNORE INTO products (sku, origin) VALUES ('${sku}', '${origin}')`;
+                const insertProductSql = `INSERT OR IGNORE INTO products (sku) VALUES ('${sku}')`;
                 const linkProductSql = `UPDATE traceability_codes SET product_id = (SELECT id FROM products WHERE sku = '${sku}') WHERE id = ${codeId}`;
                 
                 exec(`sqlite3 products.db "${insertProductSql}; ${linkProductSql}"`, (error, stdout, stderr) => {
@@ -156,7 +157,7 @@ app.get('/api/products/:dark_code', (req, res) => {
     const { dark_code } = req.params;
     
     // 使用视图查询产品信息
-    const sql = `SELECT sku, origin FROM product_view WHERE dark_code = '${dark_code}'`;
+    const sql = `SELECT sku, distributor FROM product_view WHERE dark_code = '${dark_code}'`;
     
     exec(`sqlite3 -json products.db "${sql}"`, (error, stdout, stderr) => {
         if (error) {
@@ -182,7 +183,105 @@ app.get('/api/products/:dark_code', (req, res) => {
 
 // 获取产品库列表
 app.get('/api/product-library', (req, res) => {
-    const sql = `SELECT id, sku, origin FROM products`;
+    const sql = `SELECT id, sku, name, created_at FROM products ORDER BY created_at DESC`;
+    
+    exec(`sqlite3 -json products.db "${sql}"`, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`查询产品库错误: ${error.message}`);
+            return res.status(500).json({ success: false, message: '服务器内部错误' });
+        }
+        if (stderr) {
+            console.error(`查询产品库 stderr: ${stderr}`);
+            return res.status(500).json({ success: false, message: '服务器内部错误' });
+        }
+        
+        try {
+            const results = JSON.parse(stdout);
+            res.json({ success: true, products: results });
+        } catch (parseError) {
+            res.status(500).json({ success: false, message: '数据解析错误' });
+        }
+    });
+});
+
+// 添加产品到产品库
+app.post('/api/product-library', (req, res) => {
+    const { sku, name } = req.body;
+    
+    // 验证输入
+    if (!sku) {
+        return res.status(400).json({ success: false, message: '请填写产品SKU' });
+    }
+    
+    const nameValue = name ? `'${name.replace(/'/g, "''")}'` : 'NULL';
+    const sql = `INSERT INTO products (sku, name) VALUES ('${sku}', ${nameValue})`;
+    
+    exec(`sqlite3 products.db "${sql}"`, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`添加产品错误: ${error.message}`);
+            if (error.message.includes('UNIQUE constraint failed')) {
+                return res.status(400).json({ success: false, message: '产品SKU已存在' });
+            }
+            return res.status(500).json({ success: false, message: '服务器内部错误' });
+        }
+        if (stderr) {
+            console.error(`添加产品 stderr: ${stderr}`);
+            return res.status(500).json({ success: false, message: '服务器内部错误' });
+        }
+        res.json({ success: true, message: '产品添加成功' });
+    });
+});
+
+// 更新产品库中的产品
+app.put('/api/product-library/:id', (req, res) => {
+    const { id } = req.params;
+    const { sku, name } = req.body;
+    
+    // 验证输入
+    if (!sku) {
+        return res.status(400).json({ success: false, message: '请提供SKU信息' });
+    }
+    
+    const nameValue = name ? `'${name.replace(/'/g, "''")}'` : 'NULL';
+    const sql = `UPDATE products SET sku = '${sku}', name = ${nameValue} WHERE id = ${id}`;
+    
+    exec(`sqlite3 products.db "${sql}"`, (error, stdout, stderr) => {
+        if (error || stderr) {
+            console.error(`更新产品信息错误: ${error?.message || stderr}`);
+            if (error && error.message.includes('UNIQUE constraint failed')) {
+                return res.status(400).json({ success: false, message: '该SKU已存在' });
+            }
+            return res.status(500).json({ success: false, message: '服务器内部错误' });
+        }
+        
+        res.json({ success: true, message: '产品信息更新成功' });
+    });
+});
+
+// 删除产品库中的产品
+app.delete('/api/product-library/:id', (req, res) => {
+    const { id } = req.params;
+    
+    // 验证ID
+    if (!id || isNaN(parseInt(id))) {
+        return res.status(400).json({ success: false, message: '请提供有效的产品ID' });
+    }
+    
+    const sql = `DELETE FROM products WHERE id = ${parseInt(id)}`;
+    
+    exec(`sqlite3 products.db "${sql}"`, (error, stdout, stderr) => {
+        if (error || stderr) {
+            console.error(`删除产品错误: ${error?.message || stderr}`);
+            return res.status(500).json({ success: false, message: '服务器内部错误' });
+        }
+        
+        res.json({ success: true, message: '产品删除成功' });
+    });
+});
+
+// 原有的获取产品库列表API（保持兼容性）
+app.get('/api/product-library-old', (req, res) => {
+    const sql = `SELECT id, sku FROM products`;
     
     exec(`sqlite3 -json products.db "${sql}"`, (error, stdout, stderr) => {
         if (error) {
@@ -271,56 +370,7 @@ app.post('/api/batch-import-codes', upload.single('csvFile'), (req, res) => {
 });
 
 // 获取所有二维码信息列表
-app.get('/api/get-codes', (req, res) => {
-    const page = parseInt(req.query.page) || 1;
-    const pageSize = parseInt(req.query.pageSize) || 10;
-    const offset = (page - 1) * pageSize;
-    
-    // 查询总数
-    const countSql = `SELECT COUNT(*) as total FROM traceability_codes`;
-    
-    exec(`sqlite3 -json products.db "${countSql}"`, (countError, countStdout) => {
-        if (countError) {
-            console.error(`查询二维码总数错误: ${countError.message}`);
-            return res.status(500).json({ success: false, message: '服务器内部错误' });
-        }
-        
-        try {
-            const countResult = JSON.parse(countStdout);
-            const total = countResult[0].total;
-            
-            // 查询分页数据
-            const sql = `SELECT id, code, dark_code, product_id, created_at FROM traceability_codes ORDER BY created_at DESC LIMIT ${pageSize} OFFSET ${offset}`;
-            
-            exec(`sqlite3 -json products.db "${sql}"`, (error, stdout, stderr) => {
-                if (error) {
-                    console.error(`查询二维码信息错误: ${error.message}`);
-                    return res.status(500).json({ success: false, message: '服务器内部错误' });
-                }
-                if (stderr) {
-                    console.error(`查询二维码信息 stderr: ${stderr}`);
-                    return res.status(500).json({ success: false, message: '服务器内部错误' });
-                }
-                
-                try {
-                    const results = JSON.parse(stdout);
-                    res.json({
-                        success: true,
-                        codes: results,
-                        total: total,
-                        page: page,
-                        pageSize: pageSize,
-                        totalPages: Math.ceil(total / pageSize)
-                    });
-                } catch (parseError) {
-                    res.status(500).json({ success: false, message: '数据解析错误' });
-                }
-            });
-        } catch (parseError) {
-            res.status(500).json({ success: false, message: '数据解析错误' });
-        }
-    });
-});
+// 已在文件末尾重写，返回关联的产品信息
 
 // 获取所有产品信息列表（关联了溯源码的产品）
 app.get('/api/get-products', (req, res) => {
@@ -342,7 +392,7 @@ app.get('/api/get-products', (req, res) => {
             const total = countResult[0].total;
             
             // 查询分页数据，获取已关联产品的溯源码信息
-            const sql = `SELECT tc.id, tc.code, tc.dark_code, p.sku, p.origin, tc.created_at 
+            const sql = `SELECT tc.id, tc.code, tc.dark_code, p.sku, tc.distributor, tc.created_at 
                         FROM traceability_codes tc 
                         JOIN products p ON tc.product_id = p.id 
                         ORDER BY tc.created_at DESC LIMIT ${pageSize} OFFSET ${offset}`;
@@ -389,7 +439,7 @@ app.post('/api/batch-import-products', upload.single('csvFile'), (req, res) => {
     fs.createReadStream(req.file.path)
         .pipe(csv())
         .on('data', (row) => {
-            if (row.code && row.sku && row.origin) {
+            if (row.code && row.sku && row.distributor) {
                 results.push(row);
             } else {
                 errors.push(`缺少必要字段: ${JSON.stringify(row)}`);
@@ -425,7 +475,6 @@ app.post('/api/batch-import-products', upload.single('csvFile'), (req, res) => {
                 const row = results[currentIndex];
                 const code = row.code.trim();
                 const sku = row.sku.trim();
-                const origin = row.origin.trim();
                 
                 // 先检查溯源码是否存在
                 const checkCodeSql = `SELECT id FROM traceability_codes WHERE code = '${code}'`;
@@ -451,7 +500,7 @@ app.post('/api/batch-import-products', upload.single('csvFile'), (req, res) => {
                             const codeId = codeResults[0].id;
                             
                             // 插入产品并关联
-                            const insertProductSql = `INSERT OR IGNORE INTO products (sku, origin) VALUES ('${sku}', '${origin}')`;
+                            const insertProductSql = `INSERT OR IGNORE INTO products (sku) VALUES ('${sku}')`;
                             const linkProductSql = `UPDATE traceability_codes SET product_id = (SELECT id FROM products WHERE sku = '${sku}') WHERE id = ${codeId}`;
                             
                             exec(`sqlite3 products.db "${insertProductSql}; ${linkProductSql}"`, (error, stdout, stderr) => {
@@ -484,6 +533,220 @@ app.post('/api/batch-import-products', upload.single('csvFile'), (req, res) => {
             console.error(`读取CSV文件错误: ${error.message}`);
             res.status(500).json({ success: false, message: '读取CSV文件错误' });
         });
+});
+
+// 更新产品信息
+app.put('/api/products/:id', (req, res) => {
+    const { id } = req.params;
+    const { sku } = req.body;
+    
+    // 验证输入
+    if (!sku) {
+        return res.status(400).json({ success: false, message: '请提供SKU信息' });
+    }
+    
+    // 检查产品是否存在
+    const checkProductSql = `SELECT id FROM products WHERE id = ${id}`;
+    
+    exec(`sqlite3 -json products.db "${checkProductSql}"`, (checkError, checkStdout) => {
+        if (checkError) {
+            console.error(`检查产品错误: ${checkError.message}`);
+            return res.status(500).json({ success: false, message: '服务器内部错误' });
+        }
+        
+        try {
+            const productResults = JSON.parse(checkStdout);
+            if (productResults.length === 0) {
+                return res.status(404).json({ success: false, message: '未找到对应的产品' });
+            }
+            
+            // 更新产品SKU信息
+            const updateSql = `UPDATE products SET sku = '${sku}' WHERE id = ${id}`;
+            
+            exec(`sqlite3 products.db "${updateSql}"`, (error, stdout, stderr) => {
+                if (error || stderr) {
+                    console.error(`更新产品信息错误: ${error?.message || stderr}`);
+                    if (error && error.message.includes('UNIQUE constraint failed')) {
+                        return res.status(400).json({ success: false, message: '该SKU已存在' });
+                    }
+                    return res.status(500).json({ success: false, message: '服务器内部错误' });
+                }
+                
+                res.json({ success: true, message: '产品SKU更新成功' });
+            });
+        } catch (parseError) {
+            res.status(500).json({ success: false, message: '数据解析错误' });
+        }
+    });
+});
+
+// 在二维码上关联产品分销商信息
+app.put('/api/codes/:code/distributor', (req, res) => {
+    const { code } = req.params;
+    const { distributor } = req.body;
+    
+    // 验证输入
+    if (!distributor) {
+        return res.status(400).json({ success: false, message: '请提供分销商信息' });
+    }
+    
+    // 检查二维码是否存在
+    const checkCodeSql = `SELECT id, product_id FROM traceability_codes WHERE code = '${code}'`;
+    
+    exec(`sqlite3 -json products.db "${checkCodeSql}"`, (checkError, checkStdout) => {
+        if (checkError) {
+            console.error(`检查二维码错误: ${checkError.message}`);
+            return res.status(500).json({ success: false, message: '服务器内部错误' });
+        }
+        
+        try {
+            const codeResults = JSON.parse(checkStdout);
+            if (codeResults.length === 0) {
+                return res.status(404).json({ success: false, message: '未找到对应的二维码' });
+            }
+            
+            const codeId = codeResults[0].id;
+            const productId = codeResults[0].product_id;
+            
+            // 检查是否已关联产品
+            if (!productId) {
+                return res.status(400).json({ success: false, message: '该二维码尚未关联产品，请先录入产品信息' });
+            }
+            
+            // 更新分销商信息
+            const updateSql = `UPDATE traceability_codes SET distributor = '${distributor}' WHERE id = ${codeId}`;
+            
+            exec(`sqlite3 products.db "${updateSql}"`, (error, stdout, stderr) => {
+                if (error || stderr) {
+                    console.error(`更新分销商信息错误: ${error?.message || stderr}`);
+                    return res.status(500).json({ success: false, message: '服务器内部错误' });
+                }
+                
+                res.json({ success: true, message: '分销商信息关联成功' });
+            });
+        } catch (parseError) {
+            res.status(500).json({ success: false, message: '数据解析错误' });
+        }
+    });
+});
+
+// 在二维码上关联产品信息
+app.put('/api/codes/:code/product', (req, res) => {
+    const { code } = req.params;
+    const { product_id, distributor } = req.body;
+    
+    // 验证输入
+    if (!product_id) {
+        return res.status(400).json({ success: false, message: '请选择要关联的产品' });
+    }
+    
+    // 检查二维码是否存在
+    const checkCodeSql = `SELECT id FROM traceability_codes WHERE code = '${code}'`;
+    
+    exec(`sqlite3 -json products.db "${checkCodeSql}"`, (checkError, checkStdout) => {
+        if (checkError) {
+            console.error(`检查二维码错误: ${checkError.message}`);
+            return res.status(500).json({ success: false, message: '服务器内部错误' });
+        }
+        
+        try {
+            const codeResults = JSON.parse(checkStdout);
+            if (codeResults.length === 0) {
+                return res.status(404).json({ success: false, message: '未找到对应的二维码' });
+            }
+            
+            const codeId = codeResults[0].id;
+            
+            // 检查产品是否存在
+            const checkProductSql = `SELECT id FROM products WHERE id = ${product_id}`;
+            
+            exec(`sqlite3 -json products.db "${checkProductSql}"`, (productCheckError, productCheckStdout) => {
+                if (productCheckError) {
+                    console.error(`检查产品错误: ${productCheckError.message}`);
+                    return res.status(500).json({ success: false, message: '服务器内部错误' });
+                }
+                
+                try {
+                    const productResults = JSON.parse(productCheckStdout);
+                    if (productResults.length === 0) {
+                        return res.status(404).json({ success: false, message: '未找到对应的产品' });
+                    }
+                    
+                    // 关联产品和经销商
+                    const distributorValue = distributor ? `'${distributor.replace(/'/g, "''")}'` : 'NULL';
+                    const updateSql = `UPDATE traceability_codes SET product_id = ${product_id}, distributor = ${distributorValue} WHERE id = ${codeId}`;
+                    
+                    exec(`sqlite3 products.db "${updateSql}"`, (error, stdout, stderr) => {
+                        if (error || stderr) {
+                            console.error(`关联产品错误: ${error?.message || stderr}`);
+                            return res.status(500).json({ success: false, message: '服务器内部错误' });
+                        }
+                        
+                        res.json({ success: true, message: '产品关联成功' });
+                    });
+                } catch (productParseError) {
+                    res.status(500).json({ success: false, message: '数据解析错误' });
+                }
+            });
+        } catch (parseError) {
+            res.status(500).json({ success: false, message: '数据解析错误' });
+        }
+    });
+});
+
+// 修改获取二维码列表的API，使其返回关联的产品名称和SKU
+app.get('/api/get-codes', (req, res) => {
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.pageSize) || 100;
+    const offset = (page - 1) * pageSize;
+    
+    // 查询总数
+    const countSql = `SELECT COUNT(*) as total FROM traceability_codes`;
+    
+    exec(`sqlite3 -json products.db "${countSql}"`, (countError, countStdout) => {
+        if (countError) {
+            console.error(`查询二维码总数错误: ${countError.message}`);
+            return res.status(500).json({ success: false, message: '服务器内部错误' });
+        }
+        
+        try {
+            const countResult = JSON.parse(countStdout);
+            const total = countResult[0].total;
+            
+            // 查询分页数据，包含关联的产品信息
+            const sql = `SELECT tc.id, tc.code, tc.dark_code, tc.product_id, tc.distributor, p.sku as product_sku, p.name as product_name, tc.created_at 
+                        FROM traceability_codes tc 
+                        LEFT JOIN products p ON tc.product_id = p.id 
+                        ORDER BY tc.created_at DESC LIMIT ${pageSize} OFFSET ${offset}`;
+            
+            exec(`sqlite3 -json products.db "${sql}"`, (error, stdout, stderr) => {
+                if (error) {
+                    console.error(`查询二维码信息错误: ${error.message}`);
+                    return res.status(500).json({ success: false, message: '服务器内部错误' });
+                }
+                if (stderr) {
+                    console.error(`查询二维码信息 stderr: ${stderr}`);
+                    return res.status(500).json({ success: false, message: '服务器内部错误' });
+                }
+                
+                try {
+                    const results = JSON.parse(stdout);
+                    res.json({
+                        success: true,
+                        codes: results,
+                        total: total,
+                        page: page,
+                        pageSize: pageSize,
+                        totalPages: Math.ceil(total / pageSize)
+                    });
+                } catch (parseError) {
+                    res.status(500).json({ success: false, message: '数据解析错误' });
+                }
+            });
+        } catch (parseError) {
+            res.status(500).json({ success: false, message: '数据解析错误' });
+        }
+    });
 });
 
 // 启动服务器

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>保健品产品信息录入</title>
+    <title>产品维护</title>
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
     <style>
         :root {
@@ -29,9 +29,9 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
-            padding: 15px;
+            padding: 20px;
             background-color: var(--background-color);
             background-image: 
                 radial-gradient(circle at 10% 20%, rgba(22, 93, 255, 0.05) 0%, transparent 20%),
@@ -40,62 +40,62 @@
         
         .container {
             background-color: var(--card-background);
-            padding: 25px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
             transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
         
         .container:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
         
         h1 {
             color: var(--text-primary);
             text-align: center;
-            margin-bottom: 20px;
-            font-size: 1.8rem;
-            font-weight: 600;
+            margin-bottom: 30px;
+            font-size: 2.2rem;
+            font-weight: 700;
             position: relative;
         }
         
         h1::after {
             content: '';
             display: block;
-            width: 50px;
-            height: 3px;
+            width: 60px;
+            height: 4px;
             background: linear-gradient(90deg, var(--primary-color), rgba(22, 93, 255, 0.5));
             border-radius: 2px;
-            margin: 8px auto 0;
+            margin: 10px auto 0;
         }
         
         .form-group {
-            margin-bottom: 16px;
+            margin-bottom: 25px;
         }
         
         label {
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
             font-weight: 600;
             color: var(--text-secondary);
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             text-transform: uppercase;
-            letter-spacing: 0.03em;
+            letter-spacing: 0.05em;
         }
         
-        input[type="text"], textarea {
+        input[type="text"] {
             width: 100%;
-            padding: 10px 14px;
+            padding: 12px 16px;
             border: 2px solid var(--border-color);
-            border-radius: 6px;
-            font-size: 15px;
+            border-radius: 8px;
+            font-size: 16px;
             transition: all 0.3s ease;
             background-color: var(--card-background);
             color: var(--text-primary);
         }
         
-        input[type="text"]:focus, textarea:focus {
+        input[type="text"]:focus {
             outline: none;
             border-color: var(--primary-color);
             box-shadow: 0 0 0 3px rgba(22, 93, 255, 0.1);
@@ -104,11 +104,11 @@
         .btn {
             background-color: var(--primary-color);
             color: white;
-            padding: 10px 18px;
+            padding: 12px 24px;
             border: none;
-            border-radius: 6px;
+            border-radius: 8px;
             cursor: pointer;
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 600;
             transition: all 0.3s ease;
             position: relative;
@@ -116,17 +116,13 @@
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 6px;
+            gap: 8px;
         }
         
         .btn:hover {
             background-color: var(--primary-hover);
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(22, 93, 255, 0.3);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
         }
         
         .btn-secondary {
@@ -139,9 +135,9 @@
         }
         
         .message {
-            margin-top: 15px;
-            padding: 12px 16px;
-            border-radius: 6px;
+            margin-top: 20px;
+            padding: 16px 20px;
+            border-radius: 8px;
             text-align: center;
             font-weight: 500;
             transition: all 0.3s ease;
@@ -159,33 +155,96 @@
             border: 1px solid #fecaca;
         }
         
-        .buttons {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
+        .info {
+            background-color: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #bfdbfe;
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 25px;
+            background-color: var(--card-background);
+            border-radius: 12px;
+            border: 2px solid var(--border-color);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.02);
+        }
+        
+        .result:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+        }
+        
+        .result h3 {
+            margin-top: 0;
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+            position: relative;
+            padding-bottom: 10px;
+        }
+        
+        .result h3::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 40px;
+            height: 3px;
+            background-color: var(--primary-color);
+            border-radius: 2px;
+        }
+        
+        .result p {
+            margin: 15px 0;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-size: 1.05rem;
+        }
+        
+        .result p strong {
+            color: var(--text-primary);
+            font-weight: 600;
         }
         
         .hidden {
             display: none;
         }
         
+        .instructions {
+            background-color: #fef3c7;
+            color: #92400e;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #fde68a;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        
+        .instructions strong {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+        
         .nav {
             display: flex;
             justify-content: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 30px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
         }
         
         .nav a {
-            margin: 0 15px;
+            margin: 0 20px;
             text-decoration: none;
             color: var(--primary-color);
             font-weight: 600;
-            font-size: 1rem;
+            font-size: 1.05rem;
             transition: all 0.3s ease;
             position: relative;
-            padding: 4px 0;
+            padding: 5px 0;
         }
         
         .nav a::after {
@@ -207,20 +266,14 @@
             width: 100%;
         }
         
-        .instructions {
-            background-color: #fef3c7;
-            color: #92400e;
-            padding: 15px;
-            border-radius: 6px;
-            border: 1px solid #fde68a;
-            margin-bottom: 20px;
-            font-size: 0.9rem;
-            line-height: 1.5;
+        .query-form {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
         }
         
-        .instructions strong {
-            color: var(--text-primary);
-            font-weight: 600;
+        .query-form input {
+            flex: 1;
         }
         
         /* 动画效果 */
@@ -243,7 +296,83 @@
             animation: fadeIn 0.3s ease-out;
         }
         
-        /* 列表样式 */
+        .result {
+            animation: fadeIn 0.4s ease-out;
+        }
+        
+        /* 编辑对话框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid #888;
+            width: 80%;
+            max-width: 800px;
+            border-radius: 8px;
+        }
+        
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .close:hover,
+        .close:focus {
+            color: black;
+            text-decoration: none;
+        }
+        
+        .btn-edit {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .btn-edit:hover {
+            background-color: var(--secondary-hover);
+        }
+        
+        .btn-delete {
+            background-color: var(--error-color);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 14px;
+            margin: 2px;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .btn-delete:hover {
+            background-color: #dc2626;
+        }
+        
         .list-section {
             margin-top: 20px;
         }
@@ -287,285 +416,128 @@
             padding: 30px;
             font-style: italic;
         }
-        
-        .pagination {
-            display: flex;
-            justify-content: center;
-            margin-top: 15px;
-            gap: 4px;
-        }
-        
-        .pagination button {
-            padding: 6px 10px;
-            border: 1px solid var(--border-color);
-            background-color: white;
-            color: var(--text-primary);
-            cursor: pointer;
-            border-radius: 4px;
-            font-size: 0.9rem;
-        }
-        
-        .pagination button:hover {
-            background-color: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-        }
-        
-        .pagination button.active {
-            background-color: var(--primary-color);
-            color: white;
-            border-color: var(--primary-color);
-        }
-        
-        .pagination button:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>保健品产品信息录入</h1>
+        <h1>产品维护</h1>
         
         <div class="nav">
-            <a href="index.html">产品信息录入</a>
-            <a href="import.html">二维码信息导入</a>
+            <a href="index.html">产品维护</a>
+            <a href="import.html">二维码管理</a>
             <a href="query.html">防伪查询</a>
         </div>
         
         <div class="instructions">
-            <p><strong>使用说明：</strong>请在此页面录入产品的明码、SKU和溯源信息。请注意，明码必须已在"二维码信息导入"页面预先导入。</p>
+            <p><strong>使用说明：</strong>此页面专门用于维护产品基础信息，包括SKU编号和产品名称。</p>
         </div>
         
         <form id="productForm">
-            <div class="form-group">
-                <label for="code">明码 *</label>
-                <input type="text" id="code" name="code" placeholder="请输入二维码上的明码" required>
-            </div>
-            
-
-            
-            <div class="form-group">
-                <label for="useProductLibrary">使用产品库</label>
-                <input type="checkbox" id="useProductLibrary" name="useProductLibrary" style="width: auto; margin-right: 10px;">
-                <span>从产品库中选择产品（选填）</span>
-            </div>
-            
-            <div class="form-group" id="productSelectContainer" style="display: none;">
-                <label for="productSelect">选择产品 *</label>
-                <select id="productSelect" name="productSelect" style="width: 100%; padding: 12px 16px; border: 2px solid var(--border-color); border-radius: 8px; font-size: 16px; background-color: var(--card-background); color: var(--text-primary);">
-                    <option value="">请选择产品</option>
-                </select>
-            </div>
-            
             <div class="form-group">
                 <label for="sku">产品SKU *</label>
                 <input type="text" id="sku" name="sku" placeholder="请输入产品SKU编号" required>
             </div>
             
             <div class="form-group">
-                <label for="origin">溯源信息 *</label>
-                <input type="text" id="origin" name="origin" placeholder="请输入产品溯源信息" required>
+                <label for="name">产品名称</label>
+                <input type="text" id="name" name="name" placeholder="请输入产品名称">
             </div>
             
             <div class="buttons">
-                <button type="submit" class="btn">提交录入</button>
+                <button type="submit" class="btn">添加产品</button>
                 <button type="button" class="btn btn-secondary" id="resetBtn">重置</button>
             </div>
         </form>
         
         <div id="message" class="message hidden"></div>
         
-        <!-- 批量导入产品信息区域 -->
-        <div class="form-group" style="margin-top: 30px; padding-top: 20px; border-top: 2px solid var(--border-color);">
-            <h3 style="color: var(--text-primary); margin-bottom: 15px;">批量导入产品信息</h3>
-            <p style="color: var(--text-secondary); margin-bottom: 15px;">请上传包含明码、SKU和溯源信息的CSV文件。CSV文件应包含code、sku、origin三个字段。</p>
-            <input type="file" id="batchProductFile" accept=".csv" style="margin-bottom: 15px;">
-            <button type="button" class="btn" id="batchImportProductBtn">批量导入</button>
-        </div>
-        
-        <!-- 产品列表区域 -->
         <div class="list-section">
             <div class="create-btn-container">
-                <button type="button" class="btn" id="showCreateFormBtn">新建产品信息</button>
+                <button type="button" class="btn" id="showCreateFormBtn">新建产品</button>
             </div>
             
-            <div class="table-container">
-                <table id="productsTable">
-                    <thead>
-                        <tr>
-                            <th>明码</th>
-                            <th>产品SKU</th>
-                            <th>溯源信息</th>
-                            <th>创建时间</th>
-                        </tr>
-                    </thead>
-                    <tbody id="productsTableBody">
-                        <tr class="table-empty">
-                            <td colspan="4">暂无产品信息</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            
-            <div class="pagination" id="pagination">
-                <!-- 分页按钮将由JavaScript动态生成 -->
+            <div id="productsTableContainer">
+                <div class="table-container">
+                    <table id="productsTable">
+                        <thead>
+                            <tr>
+                                <th>产品SKU</th>
+                                <th>产品名称</th>
+                                <th>创建时间</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productsTableBody">
+                            <tr class="table-empty">
+                                <td colspan="4">暂无产品信息</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
 
     <script>
+        // 格式化本地时间显示函数
+        function formatLocalTime(dateString) {
+            if (!dateString) return '-';
+            
+            // 数据库返回的时间是UTC时间，但格式为 'YYYY-MM-DD HH:mm:ss'
+            // 需要将其解析为UTC时间，然后转换为本地时间
+            const utcDate = new Date(dateString + ' UTC');
+            
+            // 检查日期是否有效
+            if (isNaN(utcDate.getTime())) return '-';
+            
+            // 使用本地时区显示
+            return utcDate.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false // 24小时制
+            });
+        }
+        
         $(document).ready(function() {
-            // 页面加载时隐藏表单和批量导入区域，显示列表
+            // 页面加载时隐藏表单，显示列表
             $('#productForm').hide();
-            $('.form-group:last-child').hide(); // 隐藏批量导入区域
             
-            // 加载产品库数据
-            function loadProductLibrary() {
-                $.ajax({
-                    url: '/api/product-library',
-                    type: 'GET',
-                    success: function(response) {
-                        if (response.success && response.products.length > 0) {
-                            const productSelect = $('#productSelect');
-                            productSelect.empty();
-                            productSelect.append('<option value="">请选择产品</option>');
-                            
-                            response.products.forEach(function(product) {
-                                const option = $('<option>').val(product.sku).data('origin', product.origin);
-                                option.text(`${product.sku} - ${product.origin}`);
-                                productSelect.append(option);
-                            });
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('加载产品库失败:', error);
-                    }
-                });
-            }
-            
-            // 初始化加载产品库
-            loadProductLibrary();
-            
-            // 使用产品库复选框切换
-            $('#useProductLibrary').change(function() {
-                const container = $('#productSelectContainer');
-                const skuInput = $('#sku');
-                const originInput = $('#origin');
-                
-                if (this.checked) {
-                    container.show();
-                    skuInput.prop('required', false);
-                    originInput.prop('required', false);
-                    $('#productSelect').prop('required', true);
-                } else {
-                    container.hide();
-                    skuInput.prop('required', true);
-                    originInput.prop('required', true);
-                    $('#productSelect').prop('required', false);
-                }
+            // 显示创建表单按钮点击事件
+            $('#showCreateFormBtn').click(function() {
+                $('#productForm').show();
+                $('#productForm')[0].reset();
             });
-            
-            // 产品选择变更
-            $('#productSelect').change(function() {
-                const selectedOption = $(this).find('option:selected');
-                if (selectedOption.val()) {
-                    $('#sku').val(selectedOption.val());
-                    $('#origin').val(selectedOption.data('origin'));
-                } else {
-                    $('#sku').val('');
-                    $('#origin').val('');
-                }
-            });
-            
-            // 批量导入产品信息
-            $('#batchImportProductBtn').click(function() {
-                const fileInput = $('#batchProductFile');
-                const file = fileInput[0].files[0];
-                
-                if (!file) {
-                    showMessage('请选择CSV文件', 'error');
-                    return;
-                }
-                
-                const formData = new FormData();
-                formData.append('csvFile', file);
-                
-                showMessage('正在导入，请稍候...', 'info');
-                
-                $.ajax({
-                    url: '/api/batch-import-products',
-                    type: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    success: function(response) {
-                        if (response.success) {
-                            showMessage(`${response.message} - 成功: ${response.successCount} 条, 失败: ${response.errorCount} 条`, 'success');
-                            // 重新加载产品库
-                            loadProductLibrary();
-                        } else {
-                            let errorMsg = response.message;
-                            if (response.errors && response.errors.length > 0) {
-                                errorMsg += '\n' + response.errors.join('\n');
-                            }
-                            showMessage(errorMsg, 'error');
-                        }
-                    },
-                    error: function(xhr, status, error) {
-                        let errorMessage = '批量导入失败';
-                        if (xhr.status) {
-                            errorMessage += ` (HTTP状态码: ${xhr.status})`;
-                        }
-                        if (status) {
-                            errorMessage += ` - ${status}`;
-                        }
-                        if (error) {
-                            errorMessage += ` - ${error}`;
-                        }
-                        showMessage(errorMessage, 'error');
-                    },
-                    complete: function() {
-                        // 清空文件输入
-                        fileInput.val('');
-                    }
-                });
-            });
+
             // 表单提交处理
             $('#productForm').submit(function(e) {
                 e.preventDefault();
                 
                 const formData = {
-                    code: $('#code').val(),
                     sku: $('#sku').val(),
-                    origin: $('#origin').val()
+                    name: $('#name').val()
                 };
                 
                 $.ajax({
-                    url: '/api/products',
+                    url: '/api/product-library',
                     type: 'POST',
                     data: JSON.stringify(formData),
                     contentType: 'application/json',
                     success: function(response) {
                         if (response.success) {
                             showMessage(response.message, 'success');
-                            // 重置表单
                             $('#productForm')[0].reset();
                         } else {
                             showMessage(response.message, 'error');
                         }
                     },
                     error: function(xhr, status, error) {
-                        // 提供更具体的错误信息
                         let errorMessage = '请求失败';
                         if (xhr.status) {
-                            errorMessage += ` (HTTP状态码: ${xhr.status})`;
-                        }
-                        if (status) {
-                            errorMessage += ` - ${status}`;
-                        }
-                        if (error) {
-                            errorMessage += ` - ${error}`;
+                            errorMessage += ' (HTTP状态码: ' + xhr.status + ')';
                         }
                         showMessage(errorMessage, 'error');
                     }
@@ -576,23 +548,13 @@
             $('#resetBtn').click(function() {
                 $('#productForm')[0].reset();
                 hideMessage();
-                // 隐藏表单，返回列表
                 $('#productForm').hide();
-                $('.form-group:last-child').hide(); // 隐藏批量导入区域
-            });
-            
-            // 显示创建表单按钮点击事件
-            $('#showCreateFormBtn').click(function() {
-                $('#productForm').show();
-                $('.form-group:last-child').show(); // 显示批量导入区域
-                // 重置表单
-                $('#productForm')[0].reset();
             });
             
             // 加载产品列表
             function loadProductsList() {
                 $.ajax({
-                    url: '/api/get-products',
+                    url: '/api/product-library',
                     type: 'GET',
                     success: function(response) {
                         if (response.success && response.products && response.products.length > 0) {
@@ -611,38 +573,68 @@
             function renderProductsTable(products) {
                 let html = '';
                 
-                products.forEach(product => {
-                    html += `
-                        <tr>
-                            <td>${product.code}</td>
-                            <td>${product.sku}</td>
-                            <td>${product.origin}</td>
-                            <td>${product.created_at ? new Date(product.created_at).toLocaleString() : '-'}</td>
-                        </tr>
-                    `;
+                products.forEach(function(product) {
+                    html += '<tr data-id="' + product.id + '">' +
+                        '<td>' + product.sku + '</td>' +
+                        '<td>' + (product.name || '-') + '</td>' +
+                        '<td>' + (product.created_at ? formatLocalTime(product.created_at) : '-') + '</td>' +
+                        '<td>' +
+                            '<button class="btn-edit" data-id="' + product.id + '" data-sku="' + product.sku + '" data-name="' + (product.name || '') + '">编辑</button> ' +
+                            '<button class="btn-delete" data-id="' + product.id + '" data-sku="' + product.sku + '">删除</button>' +
+                        '</td>' +
+                        '</tr>';
                 });
                 
                 $('#productsTableBody').html(html);
                 
-                // 为了简单起见，这里不实现分页功能
+                // 添加编辑按钮点击事件
+                $('.btn-edit').click(function() {
+                    const id = $(this).data('id');
+                    const sku = $(this).data('sku');
+                    const name = $(this).data('name');
+                    
+                    // 填充编辑表单
+                    $('#editId').val(id);
+                    $('#editSku').val(sku);
+                    $('#editName').val(name);
+                    
+                    // 显示编辑对话框
+                    $('#editModal').show();
+                });
+                
+                // 添加删除按钮点击事件
+                $('.btn-delete').click(function() {
+                    const id = $(this).data('id');
+                    const sku = $(this).data('sku');
+                    
+                    if (confirm('确定要删除产品 "' + sku + '" 吗？此操作不可撤销！')) {
+                        deleteProduct(id);
+                    }
+                });
             }
             
-            // 导入成功后刷新列表
-            const originalShowMessage = showMessage;
-            showMessage = function(message, type) {
-                originalShowMessage(message, type);
-                
-                // 如果是成功消息，刷新列表
-                if (type === 'success') {
-                    setTimeout(loadProductsList, 1000);
-                    // 隐藏表单
-                    $('#productForm').hide();
-                    $('.form-group:last-child').hide(); // 隐藏批量导入区域
-                }
-            };
-            
-            // 初始化加载产品列表
-            loadProductsList();
+            // 删除产品
+            function deleteProduct(id) {
+                $.ajax({
+                    url: '/api/product-library/' + id,
+                    type: 'DELETE',
+                    success: function(response) {
+                        if (response.success) {
+                            showMessage(response.message, 'success');
+                            loadProductsList();
+                        } else {
+                            showMessage(response.message, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        let errorMessage = '删除失败';
+                        if (xhr.status) {
+                            errorMessage += ' (HTTP状态码: ' + xhr.status + ')';
+                        }
+                        showMessage(errorMessage, 'error');
+                    }
+                });
+            }
             
             // 显示消息
             function showMessage(message, type) {
@@ -650,13 +642,108 @@
                 messageElement.text(message);
                 messageElement.removeClass('hidden success error');
                 messageElement.addClass(type);
+                
+                // 如果是成功消息，刷新列表
+                if (type === 'success') {
+                    setTimeout(function() {
+                        loadProductsList();
+                        $('#productForm').hide();
+                    }, 1000);
+                }
             }
             
             // 隐藏消息
             function hideMessage() {
                 $('#message').addClass('hidden');
             }
+            
+            // 初始化加载产品列表
+            loadProductsList();
+            
+            // 关闭编辑对话框
+            $('#closeModal').click(function() {
+                $('#editModal').hide();
+            });
+            
+            // 取消按钮事件
+            $('#cancelEdit').click(function() {
+                $('#editModal').hide();
+            });
+            
+            // 点击对话框外部关闭
+            $(window).click(function(event) {
+                if (event.target.id === 'editModal') {
+                    $('#editModal').hide();
+                }
+            });
+            
+            // 提交编辑表单
+            $('#editForm').submit(function(e) {
+                e.preventDefault();
+                
+                const id = $('#editId').val();
+                const sku = $('#editSku').val();
+                const name = $('#editName').val();
+                
+                if (!sku) {
+                    showMessage('请提供SKU信息', 'error');
+                    return;
+                }
+                
+                const formData = {
+                    sku: sku,
+                    name: name
+                };
+                
+                $.ajax({
+                    url: '/api/product-library/' + id,
+                    type: 'PUT',
+                    data: JSON.stringify(formData),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        if (response.success) {
+                            showMessage(response.message, 'success');
+                            $('#editModal').hide();
+                            loadProductsList();
+                        } else {
+                            showMessage(response.message, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        let errorMessage = '请求失败';
+                        if (xhr.status) {
+                            errorMessage += ' (HTTP状态码: ' + xhr.status + ')';
+                        }
+                        showMessage(errorMessage, 'error');
+                    }
+                });
+            });
         });
     </script>
+
+    <!-- 编辑产品对话框 -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>编辑产品信息</h2>
+                <span class="close" id="closeModal">&times;</span>
+            </div>
+            <form id="editForm">
+                <input type="hidden" id="editId">
+                <div class="form-group">
+                    <label for="editSku">SKU:</label>
+                    <input type="text" id="editSku" required>
+                </div>
+                <div class="form-group">
+                    <label for="editName">产品名称:</label>
+                    <input type="text" id="editName">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn">确定</button>
+                    <button type="button" class="btn btn-secondary" id="cancelEdit">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </body>
 </html>

@@ -29,7 +29,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 20px;
             background-color: var(--background-color);
@@ -301,8 +301,8 @@
         <h1>保健品防伪查询</h1>
         
         <div class="nav">
-            <a href="index.html">产品信息录入</a>
-            <a href="import.html">二维码信息导入</a>
+            <a href="index.html">产品维护</a>
+            <a href="import.html">二维码管理</a>
             <a href="query.html">防伪查询</a>
         </div>
         
@@ -323,7 +323,7 @@
         <div id="result" class="result hidden">
             <h3>查询结果</h3>
             <p><strong>产品SKU：</strong><span id="result-sku"></span></p>
-            <p><strong>产品产地：</strong><span id="result-origin"></span></p>
+            <p><strong>分销商：</strong><span id="result-distributor"></span></p>
         </div>
     </div>
 
@@ -348,7 +348,7 @@
                             showMessage('查询成功', 'success');
                             // 显示查询结果
                             $('#result-sku').text(response.product.sku);
-                            $('#result-origin').text(response.product.origin);
+                            $('#result-distributor').text(response.product.distributor);
                             $('#result').removeClass('hidden');
                         } else {
                             showMessage(response.message, 'error');

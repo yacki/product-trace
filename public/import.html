@@ -29,7 +29,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            max-width: 800px;
+            max-width: 1200px;
             margin: 0 auto;
             padding: 15px;
             background-color: var(--background-color);
@@ -136,6 +136,65 @@
         .btn-secondary:hover {
             background-color: var(--secondary-hover);
             box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+        }
+        
+        .btn-sm {
+            padding: 4px 8px;
+            font-size: 12px;
+            border-radius: 3px;
+        }
+        
+        /* 模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            background-color: var(--card-background);
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .modal-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 0;
+        }
+        
+        .close {
+            color: var(--text-secondary);
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        
+        .close:hover {
+            color: var(--text-primary);
         }
         
         .message {
@@ -299,19 +358,62 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            font-size: 13px;
         }
         
         th, td {
-            padding: 9px 12px;
+            padding: 8px 10px;
             text-align: left;
             border-bottom: 1px solid var(--border-color);
-            font-size: 0.95rem;
+            font-size: 13px;
         }
         
         th {
             background-color: #f1f5f9;
             font-weight: 600;
             color: var(--text-primary);
+            font-size: 12px;
+        }
+        
+        .dark-code-cell {
+            max-width: 120px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            cursor: help;
+            position: relative;
+        }
+        
+        .dark-code-cell:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2d3748;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            white-space: nowrap;
+            z-index: 1001;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+            pointer-events: none;
+            margin-bottom: 8px;
+            min-width: max-content;
+        }
+        
+        .dark-code-cell:hover::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: #2d3748;
+            z-index: 1001;
+            pointer-events: none;
+            margin-bottom: 2px;
         }
         
         tr:hover {
@@ -323,6 +425,59 @@
             color: var(--text-secondary);
             padding: 30px;
             font-style: italic;
+        }
+        
+        /* 分页器样式 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: 20px;
+            gap: 8px;
+        }
+        
+        .pagination-btn {
+            padding: 8px 12px;
+            border: 1px solid var(--border-color);
+            background: white;
+            color: var(--text-primary);
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 13px;
+            transition: all 0.2s ease;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        .pagination-btn:hover {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .pagination-btn.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        .pagination-btn:disabled {
+            background: #f1f5f9;
+            color: var(--text-secondary);
+            cursor: not-allowed;
+            border-color: var(--border-color);
+        }
+        
+        .pagination-btn:disabled:hover {
+            background: #f1f5f9;
+            color: var(--text-secondary);
+            border-color: var(--border-color);
+        }
+        
+        .pagination-info {
+            margin: 0 15px;
+            color: var(--text-secondary);
+            font-size: 13px;
         }
         
         .pagination {
@@ -361,21 +516,18 @@
     </style></head>
 <body>
     <div class="container">
-        <h1>二维码信息导入</h1>
+        <h1>二维码管理</h1>
         
         <div class="nav">
-            <a href="index.html">产品信息录入</a>
-            <a href="import.html">二维码信息导入</a>
+            <a href="index.html">产品维护</a>
+            <a href="import.html">二维码管理</a>
             <a href="query.html">防伪查询</a>
         </div>
         
-        <div class="instructions">
-            <p><strong>使用说明：</strong>请在此页面预先导入从淘宝购买的二维码信息（明码和暗码的对应关系）。导入后，再到产品信息录入页面绑定SKU和溯源信息。</p>
-        </div>
-        
         <div class="import-options">
-            <div class="import-option active" id="singleImport">单个导入</div>
+            <div class="import-option active" id="singleImport">手动录入</div>
             <div class="import-option" id="batchImport">批量导入</div>
+            <div class="import-option" id="productBind">绑定产品信息</div>
         </div>
         
         <!-- 单个导入表单 -->
@@ -392,7 +544,7 @@
             </div>
             
             <div class="buttons">
-                <button type="submit" class="btn">导入二维码信息</button>
+                <button type="submit" class="btn">保存二维码</button>
                 <button type="button" class="btn btn-secondary" id="resetBtn">重置</button>
             </div>
         </form>
@@ -405,6 +557,16 @@
                 <p style="color: var(--text-secondary); margin-bottom: 15px;">请上传包含明码和暗码信息的CSV文件。CSV文件应包含code和dark_code两个字段。</p>
                 <input type="file" id="batchCodeFile" accept=".csv" style="margin-bottom: 15px;">
                 <button type="button" class="btn" id="batchImportCodeBtn">批量导入</button>
+            </div>
+        </div>
+        
+        <!-- 批量导入产品渠道信息表单 -->
+        <div id="productBindForm" style="display: none;">
+            <div class="form-group">
+                <label for="batchProductFile">上传产品渠道CSV文件</label>
+                <p style="color: var(--text-secondary); margin-bottom: 15px;">请上传包含明码、SKU和分销商信息的CSV文件。CSV文件应包含code、sku、distributor三个字段。</p>
+                <input type="file" id="batchProductFile" accept=".csv" style="margin-bottom: 15px;">
+                <button type="button" class="btn" id="batchImportProductBtn">批量导入产品渠道</button>
             </div>
         </div>
         
@@ -422,12 +584,15 @@
                         <tr>
                             <th>明码</th>
                             <th>暗码</th>
+                            <th>关联产品</th>
+                            <th>分销商</th>
                             <th>创建时间</th>
+                            <th>操作</th>
                         </tr>
                     </thead>
                     <tbody id="codesTableBody">
                         <tr class="table-empty">
-                            <td colspan="3">暂无二维码信息</td>
+                            <td colspan="6">暂无二维码信息</td>
                         </tr>
                     </tbody>
                 </table>
@@ -440,10 +605,41 @@
     </div>
 
     <script>
+        // 格式化本地时间显示函数
+        function formatLocalTime(dateString) {
+            if (!dateString) return '-';
+            
+            // 数据库返回的时间是UTC时间，但格式为 'YYYY-MM-DD HH:mm:ss'
+            // 需要将其解析为UTC时间，然后转换为本地时间
+            const utcDate = new Date(dateString + ' UTC');
+            
+            // 检查日期是否有效
+            if (isNaN(utcDate.getTime())) return '-';
+            
+            // 使用本地时区显示
+            return utcDate.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false // 24小时制
+            });
+        }
+        
         $(document).ready(function() {
+            // 分页相关变量
+            let currentPage = 1;
+            let pageSize = 100;
+            let totalPages = 1;
+            let totalRecords = 0;
+            
             // 页面加载时隐藏导入表单，显示列表
             $('#singleImportForm').hide();
             $('#batchImportForm').hide();
+            $('#productBindForm').hide();
+            $('.import-options').hide();
             
             // 加载二维码列表
             loadCodesList();
@@ -452,8 +648,8 @@
             $('#showCreateFormBtn').click(function() {
                 $('#singleImportForm').show();
                 $('#batchImportForm').hide();
-                // 隐藏批量导入选项
-                $('.import-options').hide();
+                $('#productBindForm').hide();
+                $('.import-options').show();
                 // 重置表单
                 $('#importForm')[0].reset();
             });
@@ -462,12 +658,17 @@
                 $('.import-option').removeClass('active');
                 $(this).addClass('active');
                 
+                // 隐藏所有表单
+                $('#singleImportForm').hide();
+                $('#batchImportForm').hide();
+                $('#productBindForm').hide();
+                
                 if ($(this).attr('id') === 'batchImport') {
-                    $('#singleImportForm').hide();
                     $('#batchImportForm').show();
+                } else if ($(this).attr('id') === 'productBind') {
+                    $('#productBindForm').show();
                 } else {
                     $('#singleImportForm').show();
-                    $('#batchImportForm').hide();
                 }
                 
                 // 隐藏消息
@@ -498,6 +699,58 @@
                     success: function(response) {
                         if (response.success) {
                             showMessage(response.message, 'success');
+                        } else {
+                            let errorMsg = response.message;
+                            if (response.errors && response.errors.length > 0) {
+                                errorMsg += '\n' + response.errors.join('\n');
+                            }
+                            showMessage(errorMsg, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        let errorMessage = '批量导入失败';
+                        if (xhr.status) {
+                            errorMessage += ` (HTTP状态码: ${xhr.status})`;
+                        }
+                        if (status) {
+                            errorMessage += ` - ${status}`;
+                        }
+                        if (error) {
+                            errorMessage += ` - ${error}`;
+                        }
+                        showMessage(errorMessage, 'error');
+                    },
+                    complete: function() {
+                        // 清空文件输入
+                        fileInput.val('');
+                    }
+                });
+            });
+            
+            // 批量导入产品渠道信息
+            $('#batchImportProductBtn').click(function() {
+                const fileInput = $('#batchProductFile');
+                const file = fileInput[0].files[0];
+                
+                if (!file) {
+                    showMessage('请选择CSV文件', 'error');
+                    return;
+                }
+                
+                const formData = new FormData();
+                formData.append('csvFile', file);
+                
+                showMessage('正在导入，请稍候...', 'info');
+                
+                $.ajax({
+                    url: '/api/batch-import-products',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            showMessage(`${response.message} - 成功: ${response.successCount} 条, 失败: ${response.errorCount} 条`, 'success');
                         } else {
                             let errorMsg = response.message;
                             if (response.errors && response.errors.length > 0) {
@@ -573,23 +826,40 @@
                 // 隐藏表单，返回列表
                 $('#singleImportForm').hide();
                 $('#batchImportForm').hide();
+                $('#productBindForm').hide();
                 $('.import-options').hide();
             });
             
             // 加载二维码列表
-            function loadCodesList() {
+            function loadCodesList(page = 1) {
+                currentPage = page;
                 $.ajax({
                     url: '/api/get-codes',
                     type: 'GET',
+                    data: {
+                        page: page,
+                        pageSize: pageSize
+                    },
                     success: function(response) {
-                        if (response.success && response.codes && response.codes.length > 0) {
-                            renderCodesTable(response.codes);
+                        if (response.success && response.codes) {
+                            if (response.codes.length > 0) {
+                                renderCodesTable(response.codes);
+                                // 更新分页信息
+                                totalPages = response.totalPages || 1;
+                                totalRecords = response.total || 0;
+                                renderPagination();
+                            } else {
+                                $('#codesTableBody').html('<tr class="table-empty"><td colspan="6">暂无二维码信息</td></tr>');
+                                $('#pagination').empty();
+                            }
                         } else {
-                            $('#codesTableBody').html('<tr class="table-empty"><td colspan="3">暂无二维码信息</td></tr>');
+                            $('#codesTableBody').html('<tr class="table-empty"><td colspan="6">暂无二维码信息</td></tr>');
+                            $('#pagination').empty();
                         }
                     },
                     error: function() {
                         showMessage('加载二维码列表失败', 'error');
+                        $('#pagination').empty();
                     }
                 });
             }
@@ -599,18 +869,132 @@
                 let html = '';
                 
                 codes.forEach(code => {
+                    // 关联产品信息
+                    let productInfo = '-';
+                    if (code.product_name) {
+                        productInfo = `${code.product_name} (${code.product_sku || '-'})`;
+                    }
+                    
+                    // 关联状态按钮
+                    let associateButton = `
+                        <button type="button" class="btn btn-sm btn-associate-product" data-code="${code.code}" data-darkcode="${code.dark_code}">
+                            关联产品
+                        </button>
+                    `;
+                    
+                    if (code.product_id) {
+                        associateButton = `
+                            <button type="button" class="btn btn-sm btn-secondary btn-associate-product" data-code="${code.code}" data-darkcode="${code.dark_code}">
+                                重新关联
+                            </button>
+                        `;
+                    }
+                    
+                    // 截断暗码显示
+                    let darkCodeDisplay = code.dark_code;
+                    if (darkCodeDisplay && darkCodeDisplay.length > 12) {
+                        darkCodeDisplay = darkCodeDisplay.substring(0, 12) + '...';
+                    }
+                    
+                    // 分销商信息
+                    let distributorInfo = code.distributor || '-';
+                    
                     html += `
                         <tr>
                             <td>${code.code}</td>
-                            <td>${code.dark_code}</td>
-                            <td>${code.created_at ? new Date(code.created_at).toLocaleString() : '-'}</td>
+                            <td class="dark-code-cell" title="${code.dark_code}">${darkCodeDisplay}</td>
+                            <td>${productInfo}</td>
+                            <td>${distributorInfo}</td>
+                            <td>${code.created_at ? formatLocalTime(code.created_at) : '-'}</td>
+                            <td>${associateButton}</td>
                         </tr>
                     `;
                 });
                 
                 $('#codesTableBody').html(html);
                 
-                // 为了简单起见，这里不实现分页功能
+                // 绑定关联产品按钮事件
+                $('.btn-associate-product').click(function() {
+                    const code = $(this).data('code');
+                    const darkCode = $(this).data('darkcode');
+                    
+                    // 填充关联表单
+                    $('#associateCode').val(code);
+                    $('#associateDarkCode').val(darkCode);
+                    $('#associateCodeDisplay').val(code);
+                    
+                    // 加载产品列表到下拉框
+                    loadProductsForAssociate();
+                    
+                    // 显示关联对话框
+                    $('#associateModal').show();
+                });
+            }
+            
+            // 渲染分页器
+            function renderPagination() {
+                if (totalPages <= 1) {
+                    $('#pagination').empty();
+                    return;
+                }
+                
+                let paginationHtml = '';
+                
+                // 上一页按钮
+                paginationHtml += `<button class="pagination-btn" data-page="${currentPage - 1}" ${currentPage === 1 ? 'disabled' : ''}>上一页</button>`;
+                
+                // 页码按钮
+                let startPage = Math.max(1, currentPage - 2);
+                let endPage = Math.min(totalPages, currentPage + 2);
+                
+                // 如果当前页靠近开头，显示更多后面的页码
+                if (currentPage <= 3) {
+                    endPage = Math.min(totalPages, 5);
+                }
+                
+                // 如果当前页靠近结尾，显示更多前面的页码
+                if (currentPage > totalPages - 3) {
+                    startPage = Math.max(1, totalPages - 4);
+                }
+                
+                // 第一页
+                if (startPage > 1) {
+                    paginationHtml += `<button class="pagination-btn" data-page="1">1</button>`;
+                    if (startPage > 2) {
+                        paginationHtml += `<span class="pagination-info">...</span>`;
+                    }
+                }
+                
+                // 页码按钮
+                for (let i = startPage; i <= endPage; i++) {
+                    paginationHtml += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+                }
+                
+                // 最后一页
+                if (endPage < totalPages) {
+                    if (endPage < totalPages - 1) {
+                        paginationHtml += `<span class="pagination-info">...</span>`;
+                    }
+                    paginationHtml += `<button class="pagination-btn" data-page="${totalPages}">${totalPages}</button>`;
+                }
+                
+                // 下一页按钮
+                paginationHtml += `<button class="pagination-btn" data-page="${currentPage + 1}" ${currentPage === totalPages ? 'disabled' : ''}>下一页</button>`;
+                
+                // 页面信息
+                const startRecord = (currentPage - 1) * pageSize + 1;
+                const endRecord = Math.min(currentPage * pageSize, totalRecords);
+                paginationHtml += `<span class="pagination-info">共 ${totalRecords} 条，第 ${startRecord}-${endRecord} 条</span>`;
+                
+                $('#pagination').html(paginationHtml);
+                
+                // 绑定分页按钮点击事件
+                $('.pagination-btn:not([disabled])').click(function() {
+                    const page = parseInt($(this).data('page'));
+                    if (page && page !== currentPage) {
+                        loadCodesList(page);
+                    }
+                });
             }
             
             // 导入成功后刷新列表
@@ -620,10 +1004,12 @@
                 
                 // 如果是成功消息，刷新列表
                 if (type === 'success') {
-                    setTimeout(loadCodesList, 1000);
+                    setTimeout(() => loadCodesList(currentPage), 1000);
                     // 隐藏表单
                     $('#singleImportForm').hide();
                     $('#batchImportForm').hide();
+                    $('#productBindForm').hide();
+                    $('.import-options').hide();
                 }
             };
             
@@ -639,7 +1025,136 @@
             function hideMessage() {
                 $('#message').addClass('hidden');
             }
+            
+            // 加载产品列表用于关联
+            function loadProductsForAssociate() {
+                const productSelect = $('#associateProductId');
+                productSelect.empty();
+                productSelect.append('<option value="">请选择产品</option>');
+                
+                $.ajax({
+                    url: '/api/product-library',
+                    type: 'GET',
+                    success: function(response) {
+                        if (response.success && response.products && response.products.length > 0) {
+                            response.products.forEach(product => {
+                                productSelect.append(`<option value="${product.id}">${product.name} (${product.sku || '-'})</option>`);
+                            });
+                        }
+                    },
+                    error: function() {
+                        showMessage('加载产品列表失败', 'error');
+                    }
+                });
+            }
+            
+            // 关闭关联产品对话框
+            function closeAssociateModal() {
+                $('#associateModal').hide();
+                $('#associateForm')[0].reset();
+            }
+            
+            // 点击关闭按钮
+            $('#closeAssociateModal').click(closeAssociateModal);
+            
+            // 点击取消按钮
+            $('#cancelAssociate').click(closeAssociateModal);
+            
+            // 点击模态框外部关闭
+            $(window).click(function(event) {
+                if (event.target === document.getElementById('associateModal')) {
+                    closeAssociateModal();
+                }
+            });
+            
+            // 提交关联产品表单
+            $('#associateForm').submit(function(e) {
+                e.preventDefault();
+                
+                const code = $('#associateCode').val();
+                const productId = $('#associateProductId').val();
+                const distributor = $('#associateDistributor').val();
+                
+                // 验证输入
+                if (!productId) {
+                    showMessage('请选择要关联的产品', 'error');
+                    return;
+                }
+                
+                // 构建请求数据
+                const formData = {
+                    product_id: productId,
+                    distributor: distributor
+                };
+                
+                $.ajax({
+                    url: `/api/codes/${code}/product`,
+                    type: 'PUT',
+                    data: JSON.stringify(formData),
+                    contentType: 'application/json',
+                    success: function(response) {
+                        if (response.success) {
+                            showMessage(response.message, 'success');
+                            // 关闭对话框
+                            closeAssociateModal();
+                            // 刷新二维码列表（保持当前页）
+                            loadCodesList(currentPage);
+                        } else {
+                            showMessage(response.message, 'error');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        let errorMessage = '关联产品失败';
+                        if (xhr.status) {
+                            errorMessage += ` (HTTP状态码: ${xhr.status})`;
+                        }
+                        if (status) {
+                            errorMessage += ` - ${status}`;
+                        }
+                        if (error) {
+                            errorMessage += ` - ${error}`;
+                        }
+                        showMessage(errorMessage, 'error');
+                    }
+                });
+            });
         });
     </script>
-</body>
+<!-- 关联产品模态对话框 -->
+        <div id="associateModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title">关联产品</h2>
+                    <span class="close" id="closeAssociateModal">&times;</span>
+                </div>
+                
+                <form id="associateForm">
+                    <div class="form-group">
+                        <label for="associateCodeDisplay">明码</label>
+                        <input type="text" id="associateCodeDisplay" disabled>
+                        <input type="hidden" id="associateCode">
+                        <input type="hidden" id="associateDarkCode">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="associateProductId">选择产品 *</label>
+                        <select id="associateProductId" name="product_id" required>
+                            <option value="">请选择产品</option>
+                            <!-- 产品选项将由JavaScript动态生成 -->
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="associateDistributor">经销商代码</label>
+                        <input type="text" id="associateDistributor" name="distributor" placeholder="请输入经销商代码">
+                    </div>
+                    
+                    <div class="buttons">
+                        <button type="submit" class="btn">关联产品</button>
+                        <button type="button" class="btn btn-secondary" id="cancelAssociate">取消</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </body>
 </html>
