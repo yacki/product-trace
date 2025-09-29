@@ -7,4 +7,4 @@ pkill -f "node server.js"
 sleep 2
 
 # 启动新的服务器实例
-npm start
+nohup node server.js &
