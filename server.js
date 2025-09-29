@@ -66,6 +66,26 @@ app.use(express.static('public'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
+// API请求日志中间件
+app.use('/api', (req, res, next) => {
+    const timestamp = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+    const clientIP = req.ip || req.connection.remoteAddress || req.headers['x-forwarded-for'] || 'unknown';
+    console.log(`[${timestamp}] API请求: ${req.method} ${req.url} - 客户端IP: ${clientIP}`);
+    
+    // 记录请求参数
+    if (req.method === 'GET' && Object.keys(req.query).length > 0) {
+        console.log(`[${timestamp}] 查询参数:`, req.query);
+    }
+    if (req.method === 'POST' && req.body && Object.keys(req.body).length > 0) {
+        console.log(`[${timestamp}] 请求体:`, req.body);
+    }
+    if (req.params && Object.keys(req.params).length > 0) {
+        console.log(`[${timestamp}] 路径参数:`, req.params);
+    }
+    
+    next();
+});
+
 // API路由
 
 // 导入二维码信息（明码和暗码的对应关系）
@@ -155,7 +175,8 @@ app.post('/api/products', (req, res) => {
 // 查询产品信息
 app.get('/api/products/:dark_code', (req, res) => {
     const { dark_code } = req.params;
-    console.log(`查询暗码: ${dark_code}`);
+    const timestamp = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+    console.log(`[${timestamp}] 开始防伪查询: 暗码=${dark_code}`);
     
     // 使用分步查询避免复杂的JOIN，提高可靠性
     const sql = `SELECT tc.code, tc.dark_code, tc.product_id, tc.distributor, tc.created_at 
@@ -164,23 +185,23 @@ app.get('/api/products/:dark_code', (req, res) => {
     
     exec(`sqlite3 -json products.db "${sql}"`, (error, stdout, stderr) => {
         if (error) {
-            console.error(`查询数据错误: ${error.message}`);
+            console.error(`[${timestamp}] 查询数据错误: ${error.message}`);
             return res.status(500).json({ success: false, message: '服务器内部错误' });
         }
         if (stderr) {
-            console.error(`查询数据 stderr: ${stderr}`);
+            console.error(`[${timestamp}] 查询数据 stderr: ${stderr}`);
             return res.status(500).json({ success: false, message: '服务器内部错误' });
         }
         
         try {
             const results = JSON.parse(stdout);
             if (results.length === 0) {
-                console.log(`未找到暗码: ${dark_code}`);
+                console.log(`[${timestamp}] 查询结果: 未找到暗码 ${dark_code}`);
                 return res.json({ success: false, message: '未找到该产品信息，可能是假货' });
             }
             
             const codeInfo = results[0];
-            console.log(`查询结果:`, codeInfo);
+            console.log(`[${timestamp}] 溯源码查询成功:`, codeInfo);
             
             // 如果有关联的产品ID，查询产品信息
             if (codeInfo.product_id) {
@@ -188,7 +209,7 @@ app.get('/api/products/:dark_code', (req, res) => {
                 
                 exec(`sqlite3 -json products.db "${productSql}"`, (prodError, prodStdout, prodStderr) => {
                     if (prodError || prodStderr) {
-                        console.error('查询产品信息错误:', prodError || prodStderr);
+                        console.error(`[${timestamp}] 查询产品信息错误:`, prodError || prodStderr);
                     }
                     
                     let productInfo = {
@@ -201,10 +222,11 @@ app.get('/api/products/:dark_code', (req, res) => {
                             const prodResults = JSON.parse(prodStdout);
                             if (prodResults.length > 0) {
                                 productInfo = prodResults[0];
+                                console.log(`[${timestamp}] 产品信息查询成功:`, productInfo);
                             }
                         }
                     } catch (parseErr) {
-                        console.error('解析产品信息错误:', parseErr);
+                        console.error(`[${timestamp}] 解析产品信息错误:`, parseErr);
                     }
                     
                     // 返回完整的产品信息
@@ -216,6 +238,7 @@ app.get('/api/products/:dark_code', (req, res) => {
                         created_at: codeInfo.created_at
                     };
                     
+                    console.log(`[${timestamp}] 防伪查询成功返回:`, responseData);
                     res.json({ success: true, product: responseData });
                 });
             } else {
@@ -228,10 +251,11 @@ app.get('/api/products/:dark_code', (req, res) => {
                     created_at: codeInfo.created_at
                 };
                 
+                console.log(`[${timestamp}] 防伪查询返回(无关联产品):`, responseData);
                 res.json({ success: true, product: responseData });
             }
         } catch (parseError) {
-            console.error('解析查询结果错误:', parseError);
+            console.error(`[${timestamp}] 解析查询结果错误:`, parseError);
             res.status(500).json({ success: false, message: '数据解析错误' });
         }
     });
@@ -399,9 +423,15 @@ app.get('/api/product-library-old', (req, res) => {
 
 // 批量导入二维码信息（CSV文件）
 app.post('/api/batch-import-codes', upload.single('csvFile'), (req, res) => {
+    const timestamp = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+    console.log(`[${timestamp}] 开始批量导入二维码: 文件=${req.file ? req.file.filename : '无'}`);
+    
     if (!req.file) {
+        console.log(`[${timestamp}] 批量导入失败: 未选择文件`);
         return res.status(400).json({ success: false, message: '请选择CSV文件' });
     }
+    
+    console.log(`[${timestamp}] 文件信息: 大小=${req.file.size}字节, 原始名=${req.file.originalname}`);
     
     const results = [];
     const errors = [];
@@ -418,12 +448,15 @@ app.post('/api/batch-import-codes', upload.single('csvFile'), (req, res) => {
         .on('end', () => {
             // 删除临时文件
             fs.unlinkSync(req.file.path);
+            console.log(`[${timestamp}] CSV解析完成: 有效记录=${results.length}条, 错误记录=${errors.length}条`);
             
             if (errors.length > 0) {
+                console.log(`[${timestamp}] 批量导入失败: CSV格式错误`, errors.slice(0, 5));
                 return res.status(400).json({ success: false, message: 'CSV文件格式错误', errors });
             }
             
             if (results.length === 0) {
+                console.log(`[${timestamp}] 批量导入失败: 无有效数据`);
                 return res.status(400).json({ success: false, message: 'CSV文件没有有效数据' });
             }
             
@@ -434,12 +467,16 @@ app.post('/api/batch-import-codes', upload.single('csvFile'), (req, res) => {
             let totalErrors = 0;
             const errorMessages = [];
             
+            console.log(`[${timestamp}] 开始分批处理: 总记录=${results.length}条, 批大小=${BATCH_SIZE}`);
+            
             function processBatch(startIndex) {
                 const endIndex = Math.min(startIndex + BATCH_SIZE, results.length);
                 const batch = results.slice(startIndex, endIndex);
+                const batchTimestamp = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
                 
                 if (batch.length === 0) {
                     // 所有批次处理完成
+                    console.log(`[${batchTimestamp}] 批量导入完成: 总成功=${totalSuccess}条, 总失败=${totalErrors}条`);
                     return res.json({
                         success: totalErrors === 0,
                         message: `导入完成 - 成功: ${totalSuccess} 条, 失败: ${totalErrors} 条`,
@@ -450,6 +487,8 @@ app.post('/api/batch-import-codes', upload.single('csvFile'), (req, res) => {
                     });
                 }
                 
+                console.log(`[${batchTimestamp}] 处理批次 ${Math.floor(startIndex/BATCH_SIZE) + 1}: 记录${startIndex+1}-${endIndex}`);
+                
                 // 构建批量插入SQL
                 const values = batch.map(row => 
                     `('${row.code.trim().replace(/'/g, "''")}', '${row.dark_code.trim().replace(/'/g, "''")}')`
@@ -459,7 +498,7 @@ app.post('/api/batch-import-codes', upload.single('csvFile'), (req, res) => {
                 
                 exec(`sqlite3 products.db "${sql}"`, (error, stdout, stderr) => {
                     if (error) {
-                        console.error(`批次 ${startIndex}-${endIndex} 导入错误:`, error.message);
+                        console.error(`[${batchTimestamp}] 批次导入错误:`, error.message);
                         totalErrors += batch.length;
                         if (error.message.includes('UNIQUE constraint failed')) {
                             errorMessages.push(`批次 ${startIndex}-${endIndex}: 存在重复的明码或暗码`);
@@ -467,15 +506,16 @@ app.post('/api/batch-import-codes', upload.single('csvFile'), (req, res) => {
                             errorMessages.push(`批次 ${startIndex}-${endIndex}: ${error.message}`);
                         }
                     } else {
+                        console.log(`[${batchTimestamp}] 批次导入成功: ${batch.length}条记录`);
                         totalSuccess += batch.length;
                     }
                     
                     if (stderr) {
-                        console.error(`批次 ${startIndex}-${endIndex} stderr:`, stderr);
+                        console.error(`[${batchTimestamp}] 批次 stderr:`, stderr);
                     }
                     
                     processedCount += batch.length;
-                    console.log(`已处理 ${processedCount}/${results.length} 条记录`);
+                    console.log(`[${batchTimestamp}] 进度: ${processedCount}/${results.length} (${((processedCount/results.length)*100).toFixed(1)}%)`);
                     
                     // 处理下一批
                     setTimeout(() => processBatch(endIndex), 100); // 短暂延迟避免过载
@@ -556,9 +596,15 @@ app.get('/api/get-products', (req, res) => {
 
 // 批量导入产品信息（CSV文件）
 app.post('/api/batch-import-products', upload.single('csvFile'), (req, res) => {
+    const timestamp = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+    console.log(`[${timestamp}] 开始批量导入产品渠道: 文件=${req.file ? req.file.filename : '无'}`);
+    
     if (!req.file) {
+        console.log(`[${timestamp}] 批量导入产品失败: 未选择文件`);
         return res.status(400).json({ success: false, message: '请选择CSV文件' });
     }
+    
+    console.log(`[${timestamp}] 产品导入文件信息: 大小=${req.file.size}字节, 原始名=${req.file.originalname}`);
     
     const results = [];
     const errors = [];
@@ -575,14 +621,19 @@ app.post('/api/batch-import-products', upload.single('csvFile'), (req, res) => {
         .on('end', () => {
             // 删除临时文件
             fs.unlinkSync(req.file.path);
+            console.log(`[${timestamp}] 产品CSV解析完成: 有效记录=${results.length}条, 错误记录=${errors.length}条`);
             
             if (errors.length > 0) {
+                console.log(`[${timestamp}] 批量导入产品失败: CSV格式错误`, errors.slice(0, 5));
                 return res.status(400).json({ success: false, message: 'CSV文件格式错误', errors });
             }
             
             if (results.length === 0) {
+                console.log(`[${timestamp}] 批量导入产品失败: 无有效数据`);
                 return res.status(400).json({ success: false, message: 'CSV文件没有有效数据' });
             }
+            
+            console.log(`[${timestamp}] 开始逐条处理产品关联: 总记录=${results.length}条`);
             
             // 逐条处理，因为需要检查每条记录是否存在
             let successCount = 0;
@@ -591,6 +642,8 @@ app.post('/api/batch-import-products', upload.single('csvFile'), (req, res) => {
             
             function processNext() {
                 if (currentIndex >= results.length) {
+                    const endTimestamp = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+                    console.log(`[${endTimestamp}] 批量导入产品完成: 成功=${successCount}条, 失败=${errorCount}条`);
                     return res.json({
                         success: true,
                         message: `批量导入完成`,
@@ -603,6 +656,13 @@ app.post('/api/batch-import-products', upload.single('csvFile'), (req, res) => {
                 const code = row.code.trim();
                 const sku = row.sku.trim();
                 const distributor = row.distributor.trim();
+                
+                const processTimestamp = new Date().toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+                
+                // 每处理50条记录显示一次进度
+                if (currentIndex % 50 === 0 || currentIndex === results.length - 1) {
+                    console.log(`[${processTimestamp}] 产品导入进度: ${currentIndex + 1}/${results.length} (${((currentIndex + 1)/results.length*100).toFixed(1)}%)`);
+                }
                 
                 // 先检查溯源码是否存在
                 const checkCodeSql = `SELECT id FROM traceability_codes WHERE code = '${code}'`;
