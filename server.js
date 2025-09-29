@@ -193,9 +193,15 @@ app.get('/api/products/:dark_code', (req, res) => {
             return res.status(500).json({ success: false, message: '服务器内部错误' });
         }
         
+        // 检查返回结果是否为空
+        if (!stdout || stdout.trim() === '') {
+            console.log(`[${timestamp}] 查询结果: 未找到暗码 ${dark_code}`);
+            return res.json({ success: false, message: '未找到该产品信息，可能是假货' });
+        }
+        
         try {
             const results = JSON.parse(stdout);
-            if (results.length === 0) {
+            if (!results || results.length === 0) {
                 console.log(`[${timestamp}] 查询结果: 未找到暗码 ${dark_code}`);
                 return res.json({ success: false, message: '未找到该产品信息，可能是假货' });
             }
@@ -256,7 +262,8 @@ app.get('/api/products/:dark_code', (req, res) => {
             }
         } catch (parseError) {
             console.error(`[${timestamp}] 解析查询结果错误:`, parseError);
-            res.status(500).json({ success: false, message: '数据解析错误' });
+            console.log(`[${timestamp}] 原始查询输出:`, stdout);
+            res.json({ success: false, message: '未找到该溯源码，请确认您输入的溯源码是否正确。' });
         }
     });
 });

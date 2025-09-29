@@ -51,25 +51,6 @@
             box-shadow: 0 8px 16px rgba(0, 0, 0, 0.08);
         }
         
-        h1 {
-            color: var(--text-primary);
-            text-align: center;
-            margin-bottom: 20px;
-            font-size: 1.8rem;
-            font-weight: 600;
-            position: relative;
-        }
-        
-        h1::after {
-            content: '';
-            display: block;
-            width: 50px;
-            height: 3px;
-            background: linear-gradient(90deg, var(--primary-color), rgba(22, 93, 255, 0.5));
-            border-radius: 2px;
-            margin: 8px auto 0;
-        }
-        
         .form-group {
             margin-bottom: 16px;
         }
@@ -595,7 +576,8 @@
             display: flex;
             justify-content: center;
             position: relative;
-            margin: 20px 0;
+            margin: 20px auto;
+            width: 400px;
         }
         
         .file-upload-box {
@@ -671,8 +653,6 @@
     </style></head>
 <body>
     <div class="container">
-        <h1>二维码管理</h1>
-        
         <div class="nav">
             <a href="index.html">产品维护</a>
             <a href="import.html">二维码管理</a>
@@ -708,9 +688,6 @@
         <!-- 批量导入表单 -->
         <div id="batchImportForm" style="display: none;">
             <div class="form-group">
-                <label for="batchCodeFile">上传CSV文件</label>
-                <p style="color: var(--text-secondary); margin-bottom: 15px;">请上传包含明码和暗码信息的CSV文件。CSV文件应包含code和dark_code两个字段。</p>
-                
                 <div class="custom-file-upload">
                     <div class="file-upload-box" id="batchCodeFileBox">
                         <div class="file-upload-icon">
@@ -719,7 +696,7 @@
                             </svg>
                         </div>
                         <div class="file-upload-text">选择文件</div>
-                        <div class="file-upload-hint">支持CSV格式，或拖拽文件到此处</div>
+                        <div class="file-upload-hint">请上传包含明码和暗码信息的CSV文件。<br/>CSV文件应包含code和dark_code两个字段。</div>
                     </div>
                     <input type="file" id="batchCodeFile" class="file-upload-input" accept=".csv">
                 </div>
@@ -729,9 +706,6 @@
         <!-- 批量导入产品渠道信息表单 -->
         <div id="productBindForm" style="display: none;">
             <div class="form-group">
-                <label for="batchProductFile">上传产品渠道CSV文件</label>
-                <p style="color: var(--text-secondary); margin-bottom: 15px;">请上传包含明码、SKU和分销商信息的CSV文件。CSV文件应包含code、sku、distributor三个字段。</p>
-                
                 <div class="custom-file-upload">
                     <div class="file-upload-box" id="batchProductFileBox">
                         <div class="file-upload-icon">
@@ -740,7 +714,7 @@
                             </svg>
                         </div>
                         <div class="file-upload-text">选择文件</div>
-                        <div class="file-upload-hint">支持CSV格式，或拖拽文件到此处</div>
+                        <div class="file-upload-hint">请上传包含明码、SKU和分销商信息的CSV文件。<br/>CSV文件应包含code、sku、distributor三个字段。</div>
                     </div>
                     <input type="file" id="batchProductFile" class="file-upload-input" accept=".csv">
                 </div>

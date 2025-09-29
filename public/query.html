@@ -60,16 +60,6 @@
             position: relative;
         }
         
-        h1::after {
-            content: '';
-            display: block;
-            width: 60px;
-            height: 4px;
-            background: linear-gradient(90deg, var(--primary-color), rgba(22, 93, 255, 0.5));
-            border-radius: 2px;
-            margin: 10px auto 0;
-        }
-        
         .form-group {
             margin-bottom: 25px;
         }
@@ -294,17 +284,87 @@
         .result {
             animation: fadeIn 0.4s ease-out;
         }
+        
+        /* 错误对话框样式 */
+        .error-dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .error-dialog {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow: hidden;
+        }
+        
+        .error-dialog-header {
+            padding: 20px 24px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+        
+        .error-dialog-header h3 {
+            margin: 0;
+            color: var(--error-color);
+            font-size: 18px;
+        }
+        
+        .error-dialog-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .error-dialog-close:hover {
+            color: var(--text-primary);
+        }
+        
+        .error-dialog-content {
+            padding: 0 24px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .error-dialog-content p {
+            margin: 0;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+        
+        .error-dialog-footer {
+            padding: 20px 24px;
+            text-align: right;
+            border-top: 1px solid var(--border-color);
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>保健品防伪查询</h1>
-        
-        <div class="nav">
-            <a href="index.html">产品维护</a>
-            <a href="import.html">二维码管理</a>
-            <a href="query.html">防伪查询</a>
-        </div>
         
         <div class="instructions">
             <p><strong>使用说明：</strong>请刮开商品包装上的二维码涂层，获取暗码后在下方输入查询。</p>
@@ -347,8 +407,7 @@
                         $('#result').addClass('hidden');
                         
                         if (response.success) {
-                            showMessage('查询成功', 'success');
-                            // 显示查询结果
+                            // 查询成功时不显示"查询成功"消息，直接显示结果
                             $('#result-name').text(response.product.name || '未设置产品名称');
                             $('#result-sku').text(response.product.sku || '未关联产品');
                             $('#result-distributor').text(response.product.distributor || '未设置分销商');
@@ -360,7 +419,8 @@
                             
                             $('#result').removeClass('hidden');
                         } else {
-                            showMessage(response.message, 'error');
+                            // 查询失败时弹出错误对话框
+                            showErrorDialog('未找到该溯源码，请确认您输入的溯源码是否正确。');
                         }
                     },
                     error: function(xhr, status, error) {
@@ -398,6 +458,50 @@
             // 隐藏消息
             function hideMessage() {
                 $('#message').addClass('hidden');
+            }
+            
+            // 显示错误对话框
+            function showErrorDialog(message) {
+                // 创建错误对话框HTML（如果不存在）
+                if ($('#errorDialog').length === 0) {
+                    const errorDialogHtml = `
+                        <div id="errorDialog" class="error-dialog-overlay" style="display: none;">
+                            <div class="error-dialog">
+                                <div class="error-dialog-header">
+                                    <h3>查询失败</h3>
+                                    <button class="error-dialog-close" id="errorDialogCloseBtn">&times;</button>
+                                </div>
+                                <div class="error-dialog-content">
+                                    <p id="errorDialogMessage"></p>
+                                </div>
+                                <div class="error-dialog-footer">
+                                    <button class="btn btn-primary" id="errorDialogConfirmBtn">确定</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    $('body').append(errorDialogHtml);
+                    
+                    // 绑定关闭按钮事件
+                    $(document).on('click', '#errorDialogCloseBtn, #errorDialogConfirmBtn', function() {
+                        closeErrorDialog();
+                    });
+                    
+                    // 点击对话框外部关闭
+                    $(document).on('click', '#errorDialog', function(e) {
+                        if (e.target === this) {
+                            closeErrorDialog();
+                        }
+                    });
+                }
+                
+                $('#errorDialogMessage').text(message);
+                $('#errorDialog').show();
+            }
+            
+            // 关闭错误对话框
+            function closeErrorDialog() {
+                $('#errorDialog').hide();
             }
         });
     </script>
