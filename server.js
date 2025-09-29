@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const csv = require('csv-parser');
 const { exec } = require('child_process');
+const sqlite3 = require('sqlite3').verbose();
 const app = express();
 const PORT = 3001;
 
@@ -332,30 +333,58 @@ app.post('/api/batch-import-codes', upload.single('csvFile'), (req, res) => {
                 return res.status(400).json({ success: false, message: 'CSV文件没有有效数据' });
             }
             
-            // 构建批量插入SQL到溯源信息表
-            let sql = 'INSERT INTO traceability_codes (code, dark_code) VALUES ';
-            const values = [];
+            // 使用数据库连接进行批量插入，避免命令行长度限制
+            const sqlite3 = require('sqlite3').verbose();
+            const db = new sqlite3.Database('products.db');
             
-            results.forEach((row) => {
-                values.push(`('${row.code.trim()}', '${row.dark_code.trim()}')`);
-            });
-            
-            sql += values.join(', ') + ';';
-            
-            exec(`sqlite3 products.db "${sql}"`, (error, stdout, stderr) => {
-                if (error) {
-                    console.error(`批量导入二维码信息错误: ${error.message}`);
-                    if (error.message.includes('UNIQUE constraint failed')) {
-                        return res.status(400).json({ success: false, message: '存在重复的明码或暗码' });
-                    }
-                    return res.status(500).json({ success: false, message: '服务器内部错误' });
-                }
-                if (stderr) {
-                    console.error(`批量导入二维码信息 stderr: ${stderr}`);
-                    return res.status(500).json({ success: false, message: '服务器内部错误' });
-                }
+            // 开启事务
+            db.serialize(() => {
+                db.run("BEGIN TRANSACTION");
                 
-                res.json({ success: true, message: `成功导入 ${results.length} 条二维码信息` });
+                const stmt = db.prepare("INSERT INTO traceability_codes (code, dark_code) VALUES (?, ?)");
+                let successCount = 0;
+                let errorCount = 0;
+                const errors = [];
+                
+                results.forEach((row) => {
+                    stmt.run([row.code.trim(), row.dark_code.trim()], function(err) {
+                        if (err) {
+                            errorCount++;
+                            if (err.message.includes('UNIQUE constraint failed')) {
+                                errors.push(`重复数据: ${row.code}`);
+                            } else {
+                                errors.push(`${row.code}: ${err.message}`);
+                            }
+                        } else {
+                            successCount++;
+                        }
+                        
+                        // 当所有数据处理完成后
+                        if (successCount + errorCount === results.length) {
+                            stmt.finalize();
+                            
+                            if (errorCount === 0) {
+                                db.run("COMMIT", (err) => {
+                                    if (err) {
+                                        console.error('提交事务失败:', err);
+                                        return res.status(500).json({ success: false, message: '数据库事务提交失败' });
+                                    }
+                                    db.close();
+                                    res.json({ success: true, message: `成功导入 ${successCount} 条二维码信息` });
+                                });
+                            } else {
+                                db.run("ROLLBACK", (err) => {
+                                    db.close();
+                                    res.status(400).json({ 
+                                        success: false, 
+                                        message: `导入失败：成功 ${successCount} 条，失败 ${errorCount} 条`,
+                                        errors: errors.slice(0, 10) // 只返回前10个错误
+                                    });
+                                });
+                            }
+                        }
+                    });
+                });
             });
         })
         .on('error', (error) => {
@@ -458,12 +487,16 @@ app.post('/api/batch-import-products', upload.single('csvFile'), (req, res) => {
             }
             
             // 逐条处理，因为需要检查每条记录是否存在
+            const sqlite3 = require('sqlite3').verbose();
+            const db = new sqlite3.Database('products.db');
+            
             let successCount = 0;
             let errorCount = 0;
             let currentIndex = 0;
             
             function processNext() {
                 if (currentIndex >= results.length) {
+                    db.close();
                     return res.json({
                         success: true,
                         message: `批量导入完成`,
@@ -475,11 +508,10 @@ app.post('/api/batch-import-products', upload.single('csvFile'), (req, res) => {
                 const row = results[currentIndex];
                 const code = row.code.trim();
                 const sku = row.sku.trim();
+                const distributor = row.distributor.trim();
                 
                 // 先检查溯源码是否存在
-                const checkCodeSql = `SELECT id FROM traceability_codes WHERE code = '${code}'`;
-                
-                exec(`sqlite3 -json products.db "${checkCodeSql}"`, (checkError, checkStdout) => {
+                db.get("SELECT id FROM traceability_codes WHERE code = ?", [code], (checkError, codeRow) => {
                     if (checkError) {
                         console.error(`检查明码错误: ${checkError.message}`);
                         currentIndex++;
@@ -488,37 +520,68 @@ app.post('/api/batch-import-products', upload.single('csvFile'), (req, res) => {
                         return;
                     }
                     
-                    try {
-                            const codeResults = JSON.parse(checkStdout);
-                            if (codeResults.length === 0) {
+                    if (!codeRow) {
+                        console.log(`明码 ${code} 不存在于溯源表中`);
+                        currentIndex++;
+                        errorCount++;
+                        processNext();
+                        return;
+                    }
+                    
+                    const codeId = codeRow.id;
+                    
+                    // 使用事务确保数据一致性
+                    db.serialize(() => {
+                        db.run("BEGIN TRANSACTION");
+                        
+                        // 插入产品（如果不存在）
+                        db.run("INSERT OR IGNORE INTO products (sku) VALUES (?)", [sku], function(productError) {
+                            if (productError) {
+                                console.error(`插入产品错误: ${productError.message}`);
+                                db.run("ROLLBACK");
                                 currentIndex++;
                                 errorCount++;
                                 processNext();
                                 return;
                             }
                             
-                            const codeId = codeResults[0].id;
-                            
-                            // 插入产品并关联
-                            const insertProductSql = `INSERT OR IGNORE INTO products (sku) VALUES ('${sku}')`;
-                            const linkProductSql = `UPDATE traceability_codes SET product_id = (SELECT id FROM products WHERE sku = '${sku}') WHERE id = ${codeId}`;
-                            
-                            exec(`sqlite3 products.db "${insertProductSql}; ${linkProductSql}"`, (error, stdout, stderr) => {
-                                currentIndex++;
-                                
-                                if (error || stderr) {
+                            // 获取产品ID并更新溯源码关联
+                            db.get("SELECT id FROM products WHERE sku = ?", [sku], (getError, productRow) => {
+                                if (getError || !productRow) {
+                                    console.error(`获取产品ID错误: ${getError ? getError.message : '产品不存在'}`);
+                                    db.run("ROLLBACK");
+                                    currentIndex++;
                                     errorCount++;
-                                } else {
-                                    successCount++;
+                                    processNext();
+                                    return;
                                 }
                                 
-                                processNext();
+                                // 更新溯源码关联产品和分销商
+                                db.run("UPDATE traceability_codes SET product_id = ?, distributor = ? WHERE id = ?", 
+                                       [productRow.id, distributor, codeId], (updateError) => {
+                                    if (updateError) {
+                                        console.error(`更新溯源码关联错误: ${updateError.message}`);
+                                        db.run("ROLLBACK");
+                                        currentIndex++;
+                                        errorCount++;
+                                        processNext();
+                                        return;
+                                    }
+                                    
+                                    db.run("COMMIT", (commitError) => {
+                                        currentIndex++;
+                                        if (commitError) {
+                                            console.error(`提交事务错误: ${commitError.message}`);
+                                            errorCount++;
+                                        } else {
+                                            successCount++;
+                                        }
+                                        processNext();
+                                    });
+                                });
                             });
-                    } catch (parseError) {
-                        currentIndex++;
-                        errorCount++;
-                        processNext();
-                    }
+                        });
+                    });
                 });
             }
             
