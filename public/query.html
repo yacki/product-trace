@@ -322,8 +322,10 @@
         
         <div id="result" class="result hidden">
             <h3>查询结果</h3>
+            <p><strong>产品名称：</strong><span id="result-name"></span></p>
             <p><strong>产品SKU：</strong><span id="result-sku"></span></p>
             <p><strong>分销商：</strong><span id="result-distributor"></span></p>
+            <p><strong>创建时间：</strong><span id="result-created"></span></p>
         </div>
     </div>
 
@@ -347,8 +349,15 @@
                         if (response.success) {
                             showMessage('查询成功', 'success');
                             // 显示查询结果
-                            $('#result-sku').text(response.product.sku);
-                            $('#result-distributor').text(response.product.distributor);
+                            $('#result-name').text(response.product.name || '未设置产品名称');
+                            $('#result-sku').text(response.product.sku || '未关联产品');
+                            $('#result-distributor').text(response.product.distributor || '未设置分销商');
+                            
+                            // 格式化创建时间
+                            const createdDate = response.product.created_at ? 
+                                new Date(response.product.created_at).toLocaleString('zh-CN') : '未知';
+                            $('#result-created').text(createdDate);
+                            
                             $('#result').removeClass('hidden');
                         } else {
                             showMessage(response.message, 'error');
