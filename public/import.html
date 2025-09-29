@@ -513,6 +513,161 @@
             opacity: 0.5;
             cursor: not-allowed;
         }
+        
+        /* 错误对话框样式 */
+        .error-dialog-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .error-dialog {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow: hidden;
+        }
+        
+        .error-dialog-header {
+            padding: 20px 24px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+        
+        .error-dialog-header h3 {
+            margin: 0;
+            color: var(--danger-color);
+            font-size: 18px;
+        }
+        
+        .error-dialog-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .error-dialog-close:hover {
+            color: var(--text-primary);
+        }
+        
+        .error-dialog-content {
+            padding: 0 24px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .error-dialog-content p {
+            margin: 0;
+            line-height: 1.6;
+            color: var(--text-primary);
+        }
+        
+        .error-dialog-footer {
+            padding: 20px 24px;
+            text-align: right;
+            border-top: 1px solid var(--border-color);
+            margin-top: 20px;
+        }
+        
+        /* 自定义文件上传样式 */
+        .custom-file-upload {
+            display: flex;
+            justify-content: center;
+            position: relative;
+            margin: 20px 0;
+        }
+        
+        .file-upload-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 400px;
+            max-width: 100%;
+            min-height: 140px;
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            background-color: #fafbfc;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            padding: 30px 20px;
+            position: relative;
+        }
+        
+        .file-upload-box:hover {
+            border-color: var(--primary-color);
+            background-color: rgba(22, 93, 255, 0.05);
+        }
+        
+        .file-upload-box.dragover {
+            border-color: var(--primary-color);
+            background-color: rgba(22, 93, 255, 0.1);
+        }
+        
+        .file-upload-icon {
+            width: 48px;
+            height: 48px;
+            margin-bottom: 12px;
+            color: var(--text-secondary);
+        }
+        
+        .file-upload-text {
+            color: var(--text-primary);
+            font-size: 16px;
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .file-upload-hint {
+            color: var(--text-secondary);
+            font-size: 13px;
+        }
+        
+        .file-upload-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 1;
+        }
+        
+        .file-selected {
+            border-color: var(--success-color);
+            background-color: rgba(16, 185, 129, 0.05);
+        }
+        
+        .file-selected .file-upload-text {
+            color: var(--success-color);
+        }
+        
+        .file-selected .file-upload-icon {
+            color: var(--success-color);
+        }
     </style></head>
 <body>
     <div class="container">
@@ -555,8 +710,19 @@
             <div class="form-group">
                 <label for="batchCodeFile">上传CSV文件</label>
                 <p style="color: var(--text-secondary); margin-bottom: 15px;">请上传包含明码和暗码信息的CSV文件。CSV文件应包含code和dark_code两个字段。</p>
-                <input type="file" id="batchCodeFile" accept=".csv" style="margin-bottom: 15px;">
-                <button type="button" class="btn" id="batchImportCodeBtn">批量导入</button>
+                
+                <div class="custom-file-upload">
+                    <div class="file-upload-box" id="batchCodeFileBox">
+                        <div class="file-upload-icon">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                            </svg>
+                        </div>
+                        <div class="file-upload-text">选择文件</div>
+                        <div class="file-upload-hint">支持CSV格式，或拖拽文件到此处</div>
+                    </div>
+                    <input type="file" id="batchCodeFile" class="file-upload-input" accept=".csv">
+                </div>
             </div>
         </div>
         
@@ -565,8 +731,19 @@
             <div class="form-group">
                 <label for="batchProductFile">上传产品渠道CSV文件</label>
                 <p style="color: var(--text-secondary); margin-bottom: 15px;">请上传包含明码、SKU和分销商信息的CSV文件。CSV文件应包含code、sku、distributor三个字段。</p>
-                <input type="file" id="batchProductFile" accept=".csv" style="margin-bottom: 15px;">
-                <button type="button" class="btn" id="batchImportProductBtn">批量导入产品渠道</button>
+                
+                <div class="custom-file-upload">
+                    <div class="file-upload-box" id="batchProductFileBox">
+                        <div class="file-upload-icon">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                            </svg>
+                        </div>
+                        <div class="file-upload-text">选择文件</div>
+                        <div class="file-upload-hint">支持CSV格式，或拖拽文件到此处</div>
+                    </div>
+                    <input type="file" id="batchProductFile" class="file-upload-input" accept=".csv">
+                </div>
             </div>
         </div>
         
@@ -574,10 +751,6 @@
         
         <!-- 二维码列表区域 -->
         <div class="list-section">
-            <div class="create-btn-container">
-                <button type="button" class="btn" id="showCreateFormBtn">新建二维码信息</button>
-            </div>
-            
             <div class="table-container">
                 <table id="codesTable">
                     <thead>
@@ -635,24 +808,15 @@
             let totalPages = 1;
             let totalRecords = 0;
             
-            // 页面加载时隐藏导入表单，显示列表
-            $('#singleImportForm').hide();
+            // 页面加载时显示手动录入表单和选项
+            $('#singleImportForm').show();
             $('#batchImportForm').hide();
             $('#productBindForm').hide();
-            $('.import-options').hide();
+            $('.import-options').show();
             
             // 加载二维码列表
             loadCodesList();
             
-            // 显示创建表单按钮点击事件
-            $('#showCreateFormBtn').click(function() {
-                $('#singleImportForm').show();
-                $('#batchImportForm').hide();
-                $('#productBindForm').hide();
-                $('.import-options').show();
-                // 重置表单
-                $('#importForm')[0].reset();
-            });
             // 导入选项切换
             $('.import-option').click(function() {
                 $('.import-option').removeClass('active');
@@ -675,20 +839,12 @@
                 hideMessage();
             });
             
-            // 批量导入二维码信息
-            $('#batchImportCodeBtn').click(function() {
-                const fileInput = $('#batchCodeFile');
-                const file = fileInput[0].files[0];
-                
-                if (!file) {
-                    showMessage('请选择CSV文件', 'error');
-                    return;
-                }
-                
+            // 批量导入二维码信息函数
+            function batchImportCodes(file) {
                 const formData = new FormData();
                 formData.append('csvFile', file);
                 
-                showMessage('正在导入，请稍候...', 'info');
+                showMessage('正在导入二维码信息，请稍候...', 'info');
                 
                 $.ajax({
                     url: '/api/batch-import-codes',
@@ -709,38 +865,58 @@
                     },
                     error: function(xhr, status, error) {
                         let errorMessage = '批量导入失败';
+                        let errorDetails = [];
+                        
                         if (xhr.status) {
-                            errorMessage += ` (HTTP状态码: ${xhr.status})`;
+                            errorDetails.push(`HTTP状态码: ${xhr.status}`);
                         }
                         if (status) {
-                            errorMessage += ` - ${status}`;
+                            errorDetails.push(`状态: ${status}`);
                         }
                         if (error) {
-                            errorMessage += ` - ${error}`;
+                            errorDetails.push(`错误: ${error}`);
                         }
+                        
+                        // 尝试解析服务器返回的错误信息
+                        try {
+                            if (xhr.responseText) {
+                                const serverResponse = JSON.parse(xhr.responseText);
+                                if (serverResponse.message) {
+                                    errorMessage = serverResponse.message;
+                                }
+                                if (serverResponse.errors && Array.isArray(serverResponse.errors)) {
+                                    errorDetails = errorDetails.concat(serverResponse.errors);
+                                }
+                            }
+                        } catch (e) {
+                            // 如果不是JSON格式，直接使用响应文本
+                            if (xhr.responseText) {
+                                errorDetails.push(`服务器响应: ${xhr.responseText}`);
+                            }
+                        }
+                        
+                        if (errorDetails.length > 0) {
+                            errorMessage += '\n详细信息:\n' + errorDetails.join('\n');
+                        }
+                        
                         showMessage(errorMessage, 'error');
                     },
                     complete: function() {
-                        // 清空文件输入
-                        fileInput.val('');
+                        // 重置文件上传框
+                        const fileBox = $('#batchCodeFileBox');
+                        fileBox.removeClass('file-selected');
+                        fileBox.find('.file-upload-text').text('选择文件');
+                        fileBox.find('.file-upload-hint').text('支持CSV格式，或拖拽文件到此处');
                     }
                 });
-            });
+            }
             
-            // 批量导入产品渠道信息
-            $('#batchImportProductBtn').click(function() {
-                const fileInput = $('#batchProductFile');
-                const file = fileInput[0].files[0];
-                
-                if (!file) {
-                    showMessage('请选择CSV文件', 'error');
-                    return;
-                }
-                
+            // 批量导入产品渠道信息函数
+            function batchImportProducts(file) {
                 const formData = new FormData();
                 formData.append('csvFile', file);
                 
-                showMessage('正在导入，请稍候...', 'info');
+                showMessage('正在导入产品渠道信息，请稍候...', 'info');
                 
                 $.ajax({
                     url: '/api/batch-import-products',
@@ -752,32 +928,120 @@
                         if (response.success) {
                             showMessage(`${response.message} - 成功: ${response.successCount} 条, 失败: ${response.errorCount} 条`, 'success');
                         } else {
-                            let errorMsg = response.message;
-                            if (response.errors && response.errors.length > 0) {
-                                errorMsg += '\n' + response.errors.join('\n');
-                            }
-                            showMessage(errorMsg, 'error');
+                            showMessage(response.message, 'error');
                         }
                     },
                     error: function(xhr, status, error) {
-                        let errorMessage = '批量导入失败';
+                        let errorMessage = '批量导入产品渠道失败';
+                        let errorDetails = [];
+                        
                         if (xhr.status) {
-                            errorMessage += ` (HTTP状态码: ${xhr.status})`;
+                            errorDetails.push(`HTTP状态码: ${xhr.status}`);
                         }
                         if (status) {
-                            errorMessage += ` - ${status}`;
+                            errorDetails.push(`状态: ${status}`);
                         }
                         if (error) {
-                            errorMessage += ` - ${error}`;
+                            errorDetails.push(`错误: ${error}`);
                         }
+                        
+                        // 尝试解析服务器返回的错误信息
+                        try {
+                            if (xhr.responseText) {
+                                const serverResponse = JSON.parse(xhr.responseText);
+                                if (serverResponse.message) {
+                                    errorMessage = serverResponse.message;
+                                }
+                                if (serverResponse.errors && Array.isArray(serverResponse.errors)) {
+                                    errorDetails = errorDetails.concat(serverResponse.errors);
+                                }
+                            }
+                        } catch (e) {
+                            // 如果不是JSON格式，直接使用响应文本
+                            if (xhr.responseText) {
+                                errorDetails.push(`服务器响应: ${xhr.responseText}`);
+                            }
+                        }
+                        
+                        if (errorDetails.length > 0) {
+                            errorMessage += '\n详细信息:\n' + errorDetails.join('\n');
+                        }
+                        
                         showMessage(errorMessage, 'error');
                     },
                     complete: function() {
-                        // 清空文件输入
-                        fileInput.val('');
+                        // 重置文件上传框
+                        const fileBox = $('#batchProductFileBox');
+                        fileBox.removeClass('file-selected');
+                        fileBox.find('.file-upload-text').text('选择文件');
+                        fileBox.find('.file-upload-hint').text('支持CSV格式，或拖拽文件到此处');
                     }
                 });
-            });
+            }
+            
+            // 自定义文件上传事件处理
+            function setupCustomFileUpload(fileInputId, fileBoxId, importFunction) {
+                const fileInput = $(`#${fileInputId}`);
+                const fileBox = $(`#${fileBoxId}`);
+                
+                // 只有点击文件框时才触发文件选择
+                fileBox.click(function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    fileInput.click();
+                });
+                
+                // 阻止文件输入框的点击事件冒泡
+                fileInput.click(function(e) {
+                    e.stopPropagation();
+                });
+                
+                // 文件选择后更新显示并自动导入
+                fileInput.change(function() {
+                    const file = this.files[0];
+                    if (file) {
+                        fileBox.addClass('file-selected');
+                        fileBox.find('.file-upload-text').text('正在处理...');
+                        fileBox.find('.file-upload-hint').text(`${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
+                        
+                        // 自动触发导入
+                        setTimeout(() => {
+                            importFunction(file);
+                        }, 500);
+                    }
+                });
+                
+                // 拖拽事件处理
+                fileBox.on('dragover dragenter', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    $(this).addClass('dragover');
+                });
+                
+                fileBox.on('dragleave dragend', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    $(this).removeClass('dragover');
+                });
+                
+                fileBox.on('drop', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    $(this).removeClass('dragover');
+                    
+                    const files = e.originalEvent.dataTransfer.files;
+                    if (files.length > 0 && files[0].name.toLowerCase().endsWith('.csv')) {
+                        fileInput[0].files = files;
+                        fileInput.trigger('change');
+                    }
+                });
+            }
+            
+            // 初始化自定义文件上传
+            setupCustomFileUpload('batchCodeFile', 'batchCodeFileBox', batchImportCodes);
+            setupCustomFileUpload('batchProductFile', 'batchProductFileBox', batchImportProducts);
+            
+
             
             // 表单提交处理
             $('#importForm').submit(function(e) {
@@ -1005,21 +1269,79 @@
                 // 如果是成功消息，刷新列表
                 if (type === 'success') {
                     setTimeout(() => loadCodesList(currentPage), 1000);
-                    // 隐藏表单
-                    $('#singleImportForm').hide();
-                    $('#batchImportForm').hide();
-                    $('#productBindForm').hide();
-                    $('.import-options').hide();
+                    // 导入成功后保持功能区域可见，不隐藏表单
                 }
             };
             
             // 显示消息
             function showMessage(message, type) {
-                const messageElement = $('#message');
-                messageElement.text(message);
-                messageElement.removeClass('hidden success error');
-                messageElement.addClass(type);
+                if (type === 'error') {
+                    // 错误消息显示在模态框中
+                    showErrorDialog(message);
+                } else {
+                    // 成功消息显示在页面顶部并自动淡出
+                    const messageElement = $('#message');
+                    messageElement.text(message);
+                    messageElement.removeClass('hidden success error');
+                    messageElement.addClass(type);
+                    
+                    if (type === 'success') {
+                        // 成功消息3秒后自动隐藏
+                        setTimeout(() => {
+                            messageElement.addClass('hidden');
+                        }, 3000);
+                    }
+                }
             }
+            
+            // 显示错误对话框
+            function showErrorDialog(message) {
+                // 先隐藏页面上的信息消息（如"请稍候"等）
+                hideMessage();
+                
+                // 创建错误对话框HTML（如果不存在）
+                if ($('#errorDialog').length === 0) {
+                    const errorDialogHtml = `
+                        <div id="errorDialog" class="error-dialog-overlay" style="display: none;">
+                            <div class="error-dialog">
+                                <div class="error-dialog-header">
+                                    <h3>导入错误</h3>
+                                    <button class="error-dialog-close" id="errorDialogCloseBtn">&times;</button>
+                                </div>
+                                <div class="error-dialog-content">
+                                    <p id="errorDialogMessage"></p>
+                                </div>
+                                <div class="error-dialog-footer">
+                                    <button class="btn btn-primary" id="errorDialogConfirmBtn">确定</button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    $('body').append(errorDialogHtml);
+                    
+                    // 绑定关闭按钮事件
+                    $(document).on('click', '#errorDialogCloseBtn, #errorDialogConfirmBtn', function() {
+                        closeErrorDialog();
+                    });
+                }
+                
+                $('#errorDialogMessage').html(message.replace(/\n/g, '<br>'));
+                $('#errorDialog').show();
+            }
+            
+            // 关闭错误对话框
+            function closeErrorDialog() {
+                $('#errorDialog').hide();
+                // 同时隐藏页面上的信息消息
+                hideMessage();
+            }
+            
+            // 点击对话框外部关闭
+            $(document).on('click', '#errorDialog', function(e) {
+                if (e.target === this) {
+                    closeErrorDialog();
+                }
+            });
             
             // 隐藏消息
             function hideMessage() {
